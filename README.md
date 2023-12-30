@@ -4,7 +4,7 @@ I find myself needing to set up the development environment from scratch,
 I figured I would help myself in automating this task using Ansible.
 Thanks to @geerlingguy who uses and documents and promotes Ansible, I started looking into this great tool!
 
-I figured I would turn into a public repository if anyone else finds it useful.
+I figured I would turn it into a public repository if anyone else finds it useful.
 It is currently geared towards Ubuntu WSL environments,
 but it could probably be tweaked to work for other environments also with a few conditionals
 and with blocks geared towards other environments.
