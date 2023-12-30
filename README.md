@@ -20,6 +20,8 @@ This Ansible playbook will take care of generating a new GPG key and adding it t
 so you will then be able to clone SSH repositories in your new WSL installation without any trouble.
 
 ### Clone the repo
+This setup takes for granted that you'll clone the repo to your home folder `~`,
+so the resulting path would be `~/ansible-wsl-development-setup`.
 ```shell
 git clone https://github.com/JohnRDOrazio/ansible-wsl-development-setup
 ```
