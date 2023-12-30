@@ -233,6 +233,7 @@
       path: "~/.gnupg/gpg-agent.conf"
       search_string: 'default-cache-ttl '
       line: "default-cache-ttl {{ gpg_default_cache_ttl }}"
+      creates: yes
       state: present
 
   - name: "Check if git global config exists at all"
