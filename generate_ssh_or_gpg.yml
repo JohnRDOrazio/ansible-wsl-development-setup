@@ -222,11 +222,17 @@
       block: |
         export GPG_TTY=$(tty)
         eval $(keychain --agents ssh,gpg --eval {{ ssh_key_filename }} {{ gpg_key_id }})
-      create: yes
       marker_begin: "keychain START"
       marker_end: "keychain END"
       mode: 0644
       path: "~/.bashrc"
+      state: present
+
+  - name: "Update GPG agent default cache TTL"
+    lineinfile:
+      path: "~/.gnupg/gpg-agent.conf"
+      search_string: 'default-cache-ttl '
+      line: "default-cache-ttl {{ gpg_default_cache_ttl }}"
       state: present
 
   - name: "Check if git global config exists at all"

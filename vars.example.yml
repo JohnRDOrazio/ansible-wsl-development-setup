@@ -16,10 +16,12 @@ github_key_name: "{{ansible_facts['nodename']}} {{ansible_facts['distribution']}
 github_email: myemail@exmaple.com   #*
 github_api_token: my_api_token      #*
 
-#if GPG is used to sign commits, it makes sense for the key #to be associated with the Github email address
+#if GPG is used to sign commits, it makes sense for the key to be associated with the Github email address
 #however you might have reason to want to set it specifically...
+#Here you can also set the TTL for the GPG agent cache, seeing the default is 600 seconds = 10 minutes which can get frustrating
 gpg_realname: "your name here"      #*
 gpg_useremail: "{{ github_email }}"
+gpg_default_cache_ttl: 14400
 
 #git global configuration
 git_user_name: "{{ gpg_realname }}"
