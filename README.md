@@ -45,16 +45,11 @@ that would otherwise require quite a bit of effort to write from scratch. Using 
 keep your playbooks as clean and simple as possible.
 
 Currently, we are using a single **role** in this playbook, `ansible-role-nvm` by @morgangraphics,
-defined in `requirements.yml`.
+defined in `requirements.yml`. We're using our own forked version to fix a glitch in newer versions of Ansible.
 
 We must install our roles before running our playbook. From within our project folder (`~/ansible-wsl-development-setup/`) run:
 ```shell
 ansible-galaxy install -r requirements.yml
-```
-
-There is however an error in this version of `ansible-role-nvm` with newer versions of ansible, so let’s fix that:
-```shell
-sed -i 's/include/import_tasks/' roles/ansible-role-nvm/tasks/main.yml
 ```
 
 ### Define our variables
