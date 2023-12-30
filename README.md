@@ -29,6 +29,8 @@ git clone https://github.com/JohnRDOrazio/ansible-wsl-development-setup
 ### Install Ansible
 Firstly we will need to have Ansible installed, and Ansible requires python:
 ```shell
+sudo apt update
+sudo apt upgrade
 sudo apt install python3 python3-pip python-is-python3
 pip install ansible jmespath 
 ```
