@@ -1,0 +1,262 @@
+---
+  - name: "Collecting SSH and/or GPG key passphrase from user input"
+    pause:
+      prompt: "Enter the passphrase for the SSH and/or GPG keys"
+      echo: yes
+    register: passphrase_result
+    when: ssh_key.stat.exists == False or gpg_key_exists == False
+
+  - name: "Storing user input to reusable fact"
+    set_fact:
+      ssh_passphrase: "{{ passphrase_result.user_input }}"
+      gpg_passphrase: "{{ passphrase_result.user_input }}"
+    when: ssh_key.stat.exists == False or gpg_key_exists == False
+
+  - name: "Generate SSH key {{ ssh_key_filename }} when it does not already exist"
+    user:
+      name: "{{ ansible_user_id }}"
+      generate_ssh_key: true
+      ssh_key_type: ed25519
+      ssh_key_comment: "{{ github_email }}"
+      ssh_key_file: ".ssh/{{ ssh_key_filename }}"
+      ssh_key_passphrase: "{{ ssh_passphrase }}"
+      force: false
+    when: not ssh_key.stat.exists
+
+  - name: "Read SSH public key"
+    shell: "cat ~/.ssh/{{ ssh_key_filename }}.pub"
+    register: ssh_key_contents
+    changed_when: false
+
+  - name: "Copy SSH public key to reusable fact"
+    set_fact:
+      ssh_key_public: "{{ ssh_key_contents.stdout | trim | regex_replace(' ' + github_email + '$','') }}"
+
+  - name: "Report content of SSH public key"
+    debug:
+      var: ssh_key_public
+
+  #there is probably a better way of doing this with Ansible, using the authorized_key module ...
+  - name: "Ensure remote server has a copy of the SSH key"
+    shell: "ssh-copy-id -i ~/.ssh/{{ ssh_key_filename }}.pub {{ remote_server_user }}@{{ remote_server_ip }}"
+    register: ssh_copy_keys
+    when: remote_server_authorize_key
+    changed_when: ssh_copy_keys.stdout_lines | length > 0
+
+  - name: "SSH key distribution"
+    block:
+
+    - name: "Check Github profile current SSH keys"
+      uri:
+        url: https://api.github.com/user/keys
+        method: GET
+        return_content: yes
+        status_code: 200
+        body_format: json
+        headers:
+          Accept: "application/vnd.github+json"
+          Authorization: "Bearer {{ github_api_token }}"
+          X-Github-Api-Version: "2022-11-28"
+      register: github_keys
+
+    # - name: "Report results of API call"
+    #   debug:
+    #     var: github_keys.json
+
+    - name: "Filter newly generated SSH public key from Github keys"
+      set_fact:
+        key_exists_on_github: "{{ github_keys.json | json_query('[?key==`' + ssh_key_public + '`]') | length | bool}}"
+
+    - name: "Report whether key exists already on Github"
+      debug:
+        var: key_exists_on_github
+
+    - name: "Add newly generated SSH key to Github if not present"
+      uri:
+        url: https://api.github.com/user/keys
+        method: POST
+        return_content: yes
+        status_code: 201
+        body_format: json
+        headers:
+          Accept: "application/vnd.github+json"
+          Authorization: "Bearer {{github_api_token}}"
+          X-Github-Api-Version: "2022-11-28"
+        body: "{\"title\":\"{{ github_key_name }}\",\"key\":\"{{ ssh_key_public }}\"}"
+      register: github_newkey
+      when: not key_exists_on_github
+
+    - name: "Report result of API call to add new SSH key"
+      debug:
+        var: github_newkey.json
+      when: not key_exists_on_github
+
+  - name: "GPG key generation"
+    block:
+
+    - name: "Generate GPG key for certifying, signing and encrypting using the latest ed25519 algorithm"
+      shell: >
+        gpg --batch --passphrase "{{ gpg_passphrase }}" --default-new-key-algo "ed25519/cert,sign+cv25519/encr" --quick-generate-key "{{ gpg_realname }} ({{ github_key_name }}) <{{ gpg_useremail }}>" default default never
+      args:
+        executable: /bin/bash
+      register: gpg_key_generation
+
+    - name: "Report gpg key generation"
+      debug:
+        var: gpg_key_generation
+
+    - name: "Capture id of newly generated GPG key"
+      set_fact:
+        gpg_key_id: "{{ gpg_key_generation.stderr_lines[0] | regex_search('gpg: key (.*) marked as ultimately trusted', '\\1') | first }}"
+
+    - name: "Report id of newly generated GPG key"
+      debug:
+        var: gpg_key_id
+
+    - name: "Export newly generated GPG key in ASCII armor format"
+      shell: gpg --armor --export {{ gpg_key_id }}
+      args:
+        executable: /bin/bash
+      register: gpg_key_armor
+
+    - name: "Report ASCII armor export"
+      debug:
+        var: gpg_key_armor.stdout
+
+    when: not gpg_key_exists
+
+  - name: "Get reference to existing GPG key"
+    block:
+
+    - name: "List GPG keys in long format"
+      shell: gpg --list-secret-keys --keyid-format=long
+      args:
+        executable: /bin/bash
+      register: gpg_list_secret_keys_long
+      changed_when: false
+
+    - name: "Capture id of existing GPG key"
+      set_fact:
+        gpg_key_id: "{{ gpg_list_secret_keys_long.stdout | regex_search('sec   ed25519\/(.*) 202[0-9]', '\\1') | first }}"
+
+    - name: "Report id of newly generated GPG key"
+      debug:
+        var: gpg_key_id
+
+    - name: "Export newly generated GPG key in ASCII armor format"
+      shell: gpg --armor --export {{ gpg_key_id }}
+      args:
+        executable: /bin/bash
+      register: gpg_key_armor
+      changed_when: false
+
+    - name: "Report ASCII armor export"
+      debug:
+        var: gpg_key_armor.stdout
+
+    when: gpg_key_exists
+
+
+  - name: "GPG key distribution"
+    block:
+
+    - name: "Check Github profile current GPG keys"
+      uri:
+        url: https://api.github.com/user/gpg_keys
+        method: GET
+        return_content: yes
+        status_code: 200
+        body_format: json
+        headers:
+          Accept: "application/vnd.github+json"
+          Authorization: "Bearer {{ github_api_token }}"
+          X-Github-Api-Version: "2022-11-28"
+      register: github_gpg_keys
+
+    # - name: "Report results of API call"
+    #   debug:
+    #     var: github_gpg_keys.json
+
+    - name: "Filter GPG key from Github keys"
+      set_fact:
+        gpg_key_exists_on_github: "{{ github_gpg_keys.json | json_query('[?key_id==`' + gpg_key_id + '`]') | length | bool}}"
+
+    - name: "Report whether key exists already on Github"
+      debug:
+        var: gpg_key_exists_on_github
+
+    - name: "Add GPG key to Github via API call"
+      uri:
+        url: https://api.github.com/user/gpg_keys
+        method: POST
+        return_content: yes
+        status_code: 201
+        body_format: json
+        headers:
+          Accept: "application/vnd.github+json"
+          Authorization: "Bearer {{github_api_token}}"
+          X-Github-Api-Version: "2022-11-28"
+        body:
+          name: "{{ gpg_realname }} ({{ github_key_name }}) <{{ gpg_useremail }}>"
+          armored_public_key: "{{ gpg_key_armor.stdout }}"
+      register: github_gpgkey
+      when: not gpg_key_exists_on_github
+
+    - name: "Report result of API call to add new GPG key"
+      debug:
+        var: github_gpgkey.json
+      when: not gpg_key_exists_on_github
+
+  - name: "Ensure keychain is installed: update apt cache"
+    apt: update_cache=true cache_valid_time=86400
+    become: yes
+
+  - name: "Ensure keychain is installed"
+    apt:
+      name: keychain
+      state: present
+    become: yes
+
+  - name: "Ensure keychain is added to user profile (.bashrc)"
+    blockinfile:
+      block: |
+        export GPG_TTY=$(tty)
+        eval $(keychain --agents ssh,gpg --eval {{ ssh_key_filename }} {{ gpg_key_id }})
+      create: yes
+      marker_begin: "keychain START"
+      marker_end: "keychain END"
+      mode: 0644
+      path: "~/.bashrc"
+      state: present
+
+  - name: "Check if git global config exists at all"
+    stat:
+      path: ~/.gitconfig
+    register: gitconfig_global
+
+  # - name: "Check if git default user is set"
+  #   shell: git config --global user.name
+  #   register: git_default_user
+  #   ignore_errors: true
+  #   changed_when: false
+
+  # - name: "Check if git default email is set"
+  #   shell: git config --global user.email
+  #   register: git_default_email
+  #   ignore_errors: true
+  #   changed_when: false
+
+  # - name: "Check if git default signing key is set"
+  #   shell: git config --global user.signingkey
+  #   register: git_default_signingkey
+  #   ignore_errors: true
+  #   changed_when: false
+
+  - name: "Set git defaults"
+    shell: |
+      git config --global user.name "{{ git_user_name }}"
+      git config --global user.email "{{ git_user_email }}"
+      git config --global user.signingkey "{{ gpg_key_id }}"
+      git config --global init.defaultbranch "{{ git_default_init_branch }}"
+      git config --global commit.gpgsign "{{ git_commit_gpgsign }}"
+    when: not gitconfig_global.stat.exists

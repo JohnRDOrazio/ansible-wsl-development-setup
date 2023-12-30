@@ -1,0 +1,4 @@
+---
+- name: ansible-role-nvm
+  src: https://github.com/morgangraphics/ansible-role-nvm.git
+  version: v1.5.2
