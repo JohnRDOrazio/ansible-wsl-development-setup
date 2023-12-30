@@ -41,6 +41,9 @@ rather than specifying `python3` or `pip3` every time.
 
 The pip package `jmespath` is needed in order to use `json_query` within Ansible, which this playbook does.
 
+You should probably close your WSL instance and open again in order to refresh paths,
+so that `ansible` commands can work correctly.
+
 ### Install ansible roles
 In Ansible, **roles** are like precooked or reusable playbooks that take care of a number of tasks
 that would otherwise require quite a bit of effort to write from scratch. Using **roles** can help
