@@ -176,6 +176,12 @@
           name: "{{ ruby_build_packages }}"
           state: present
         become: yes
+        register: ruby_build_packages_install
+        debugger: on_failed
+
+      - name: Report installation of packages required to build ruby
+        debug:
+          var: ruby_build_packages_install
 
       - name: Install latest version of Ruby
         shell: |
