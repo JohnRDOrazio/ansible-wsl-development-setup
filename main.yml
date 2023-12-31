@@ -44,12 +44,18 @@
       debug:
         msg: "NVM apparently {{ 'IS' if nvm_executable.stat.exists else 'IS NOT' }} installed"
 
-    - name: "Check whether NVM seems to be working if installed"
+    - name: "Ensure NVM is installed and Node JS is at the latest LTS version"
+      include_role:
+        name: ansible-role-nvm
+      vars:
+        nvm_profile: "~/.bashrc"
+      when: not nvm_executable.stat.exists
+
+    - name: "Check whether NVM seems to be working"
       shell: |
         source ~/.nvm/nvm.sh && command -v nvm
       args:
         executable: /bin/bash
-      when: nvm_executable.stat.exists
       register: nvm_working
       ignore_errors: true
       changed_when: false
@@ -57,13 +63,6 @@
     - name: "Report whether NVM seems to be working"
       debug:
         msg: "NVM apparently {{ 'IS' if nvm_working.rc == 0 and nvm_working.stdout == 'nvm' else 'IS NOT' }} working alright"
-
-    - name: "Ensure NVM is installed and Node JS is at the latest LTS version"
-      include_role:
-        name: ansible-role-nvm
-      vars:
-        nvm_profile: "~/.bashrc"
-      when: not nvm_executable.stat.exists
 
     - name: "Check if AVN is installed"
       stat:
