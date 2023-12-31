@@ -138,34 +138,43 @@
         state: present
       when: rbenv_executable.stat.exists == False
 
-    - name: Define ruby_build_packages
-      set_fact:
-        ruby_build_packages: "{{ __ruby_build_packages }}"
-      when: ruby_build_packages is not defined and rbenv_executable.stat.exists == False
-
-    - name: "Prepare build environment: update apt cache"
-      apt: update_cache=true cache_valid_time=86400
-      become: yes
-      when: ansible_os_family == 'Debian' and rbenv_executable.stat.exists == False
-
-    - name: Install packages required to build ruby (Debian).
-      apt:
-        name: "{{ ruby_build_packages }}"
-        state: present
-      become: yes
-      when: ansible_os_family == 'Debian' and rbenv_executable.stat.exists == False
-
-    - name: Run RBENV-doctor and install the latest stable version of Ruby
+    - name: Run RBENV-doctor
       shell: |
         eval "$($HOME/.rbenv/bin/rbenv init - bash)"
         curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
-        rbenv install $(rbenv install -l | grep -v - | tail -1)
       args:
         executable: /bin/bash
       register: rbenv_doctor
-      when: rbenv_executable.stat.exists == False
 
     - name: Ruby env doctor's report
       debug:
         var: rbenv_doctor
-      when: rbenv_executable.stat.exists == False
+
+    - name: Define ruby_build_packages
+      set_fact:
+        ruby_build_packages: "{{ __ruby_build_packages }}"
+      when: ruby_build_packages is not defined
+
+    - name: "Prepare build environment: update apt cache"
+      apt: update_cache=true cache_valid_time=86400
+      become: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install packages required to build ruby
+      apt:
+        name: "{{ ruby_build_packages }}"
+        state: present
+      become: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install latest version of Ruby
+      shell: |
+        eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+        rbenv install $(rbenv install -l | grep -v - | tail -1)
+      args:
+        executable: /bin/bash
+      register: ruby_install
+
+    - name: Report ruby install
+      debug:
+        var: ruby_install
