@@ -117,7 +117,7 @@
       shell: gpg --armor --export {{ gpg_key_id }}
       args:
         executable: /bin/bash
-      register: gpg_key_armor
+      register: gpg_key_armor_A
 
     - name: "Report ASCII armor export"
       debug:
@@ -147,7 +147,7 @@
       shell: gpg --armor --export {{ gpg_key_id }}
       args:
         executable: /bin/bash
-      register: gpg_key_armor
+      register: gpg_key_armor_B
       changed_when: false
 
     - name: "Report ASCII armor export"
@@ -184,6 +184,10 @@
     - name: "Report whether key exists already on Github"
       debug:
         var: gpg_key_exists_on_github
+
+    - name: "Set value of gpg_key_armor based on which variable was set"
+      set_fact:
+        gpg_key_armor: "{{ gpg_key_armor_B if gpg_key_exists else gpg_key_armor_A }}"
 
     - name: "Add GPG key to Github via API call"
       uri:
