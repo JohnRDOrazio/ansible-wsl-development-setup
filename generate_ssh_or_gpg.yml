@@ -121,7 +121,7 @@
 
     - name: "Report ASCII armor export"
       debug:
-        var: gpg_key_armor.stdout
+        var: gpg_key_armor_A.stdout
 
     when: not gpg_key_exists
 
@@ -139,11 +139,11 @@
       set_fact:
         gpg_key_id: "{{ gpg_list_secret_keys_long.stdout | regex_search('sec   ed25519\/(.*) 202[0-9]', '\\1') | first }}"
 
-    - name: "Report id of newly generated GPG key"
+    - name: "Report id of existing GPG key"
       debug:
         var: gpg_key_id
 
-    - name: "Export newly generated GPG key in ASCII armor format"
+    - name: "Export existing GPG key in ASCII armor format"
       shell: gpg --armor --export {{ gpg_key_id }}
       args:
         executable: /bin/bash
@@ -152,7 +152,7 @@
 
     - name: "Report ASCII armor export"
       debug:
-        var: gpg_key_armor.stdout
+        var: gpg_key_armor_B.stdout
 
     when: gpg_key_exists
 
