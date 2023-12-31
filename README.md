@@ -39,6 +39,9 @@ I'm taking for granted that any python development will be done using Python 3,
 so installing the `python-is-python3` package will allow you to use `python` and `pip`
 rather than specifying `python3` or `pip3` every time.
 
+The `python3` package probably isn't necessary to specify,
+it should in fact already be installed on a fresh instance of WSL Ubuntu 22.04.
+
 The pip package `jmespath` is needed in order to use `json_query` within Ansible, which this playbook does.
 
 You should probably close your WSL instance and open again in order to refresh paths,
