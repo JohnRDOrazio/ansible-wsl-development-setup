@@ -240,6 +240,30 @@
       create: yes
       state: present
 
+  - name: "Update GPG agent max cache TTL"
+    lineinfile:
+      path: "~/.gnupg/gpg-agent.conf"
+      search_string: 'max-cache-ttl '
+      line: "max-cache-ttl {{ gpg_max_cache_ttl }}"
+      create: yes
+      state: present
+
+  - name: "Update GPG agent default cache TTL SSH"
+    lineinfile:
+      path: "~/.gnupg/gpg-agent.conf"
+      search_string: 'default-cache-ttl-ssh '
+      line: "default-cache-ttl-ssh {{ gpg_default_cache_ttl_ssh }}"
+      create: yes
+      state: present
+
+  - name: "Update GPG agent max cache TTL SSH"
+    lineinfile:
+      path: "~/.gnupg/gpg-agent.conf"
+      search_string: 'max-cache-ttl-ssh'
+      line: "max-cache-ttl-ssh {{ gpg_max_cache_ttl_ssh }}"
+      create: yes
+      state: present
+
   - name: "Check if git global config exists at all"
     stat:
       path: ~/.gitconfig

@@ -22,6 +22,9 @@ github_api_token: my_api_token      #*
 gpg_realname: "your name here"      #*
 gpg_useremail: "{{ github_email }}"
 gpg_default_cache_ttl: 14400
+gpg_max_cache_ttl: 14400
+gpg_default_cache_ttl_ssh: 14400
+gpg_max_cache_ttl_ssh: 14400
 
 #git global configuration
 git_user_name: "{{ gpg_realname }}"
