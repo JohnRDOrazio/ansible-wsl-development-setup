@@ -199,3 +199,66 @@
         - name: Report ruby install
           debug:
             var: ruby_install
+
+    - name: Enable PHP repo and install PHP
+      when: install_php
+      block:
+
+        - name: Get list of current PPAs
+          shell: find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb
+          register: ppa_list
+          changed_when: false
+          args:
+            executable: /bin/bash
+
+        - name: Check if Ondrej Sury's PHP PPA is in this list (define regex pattern)
+          set_fact:
+            pattern: "{{ 'deb \\[?(?:.*?)\\]?\\s?https?://ppa.launchpadcontent.net/ondrej/php/ubuntu/ ' ~ ansible_distribution_release ~ ' main' }}"
+
+        - name: Check if Ondrej Sury's PHP PPA is in this list (run regex search)
+          set_fact:
+            sury_php_ppa_present: "{{ (ppa_list.stdout | regex_search(pattern)) }}"
+
+        - name: Report whether Ondrej Sury's PPA is already added
+          debug:
+            msg: "Ondrej Sury's PPA {{ 'IS' if sury_php_ppa_present else 'IS NOT' }} already added"
+
+        # Not using Ansible's apt_repository here because it doesn't install
+        # the key to /etc/apt/trusted.gpg.d/, instead it uses the deprecated /etc/apt/trusted.gpg
+        - name: Add Ondrej Sury's PHP PPA if not present
+          when: not sury_php_ppa_present
+          become: true
+          shell: |
+            add-apt-repository --yes ppa:ondrej/php
+            apt update
+          register: add_apt_repo_sury_php
+          args:
+            executable: /bin/bash
+          changed_when: add_apt_repo_sury_php.rc == 0
+
+        - name: Define list of PHP versions to install
+          set_fact:
+            php_versions_to_install: "{{ php_versions | map('regex_replace', '^(.*)$', 'php\\1') | list }}"
+
+        - name: Define list of PHP modules to install for each version
+          set_fact:
+            php_modules_to_install: "{{ php_modules_to_install|default([]) + (php_modules | map('regex_replace', '^(.*)$', item ~ '-\\1') | list) }}"
+          with_items: "{{ php_versions_to_install }}"
+
+        - name: Report php_versions_to_install
+          debug:
+            msg:
+              php_versions_to_install: "{{ php_versions_to_install }}"
+              php_modules_to_install: "{{ php_modules_to_install }}"
+
+        - name: Install PHP
+          apt:
+            name: "{{ php_versions_to_install }}"
+            state: present
+          become: true
+
+        - name: Install PHP modules
+          apt:
+            name: "{{ php_modules_to_install }}"
+            state: present
+          become: true

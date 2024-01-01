@@ -44,6 +44,91 @@ remote_server_user: remoteserveruser #* when remote_server_authorize_key is true
 #useful for updating apt cache and apt installing packages
 ansible_become_password: sudopasswordhere #*
 
+install_php: true
+php_versions: # list here the versions of php you would like installed
+  - "8.3"
+  - "8.2"
+
+# uncomment the modules you would like to install
+# (only those available for the latest PHP 8.3 are listed here)
+php_modules:
+#  - amqp
+#  - apcu
+#  - ast
+#  - bcmath
+#  - bz2
+#  - cgi
+#  - cli
+#  - common
+#  - curl
+#  - dba
+#  - decimal
+#  - dev
+#  - ds
+#  - enchant
+#  - fpm
+#  - gd
+#  - gearman
+#  - gmagick
+#  - gmp
+#  - gnupg
+#  - grpc
+#  - http
+#  - igbinary
+#  - imagick
+#  - imap
+#  - inotify
+#  - interbase
+#  - intl
+#  - ldap
+#  - mailparse
+#  - maxminddb
+#  - mbstring
+#  - memcache
+#  - memcached
+#  - mongodb
+#  - msgpack
+#  - mysql
+#  - oauth
+#  - odbc
+#  - opcache
+#  - pcov
+#  - pgsql
+#  - phpdbg
+#  - protobuf
+#  - ps
+#  - pspell
+#  - psr
+#  - raphf
+#  - rdkafka
+#  - readline
+#  - redis
+#  - rrd
+#  - smbclient
+#  - snmp
+#  - soap
+#  - solr
+#  - sqlite3
+#  - ssh2
+#  - stomp
+#  - swoole
+#  - sybase
+#  - tidy
+#  - uopz
+#  - uploadprogress
+#  - uuid
+#  - vips
+#  - xdebug
+#  - xhprof
+#  - xml
+#  - xmlrpc
+#  - xsl
+#  - yac
+#  - yaml
+#  - zip
+#  - zmq
+#  - zstd
+
 #might not want to touch this... is needed to correctly install and build ruby
 __ruby_build_packages:
   - build-essential
