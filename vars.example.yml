@@ -45,6 +45,7 @@ remote_server_user: remoteserveruser #* when remote_server_authorize_key is true
 ansible_become_password: sudopasswordhere #*
 
 install_php: true
+install_composer: true
 php_versions: # list here the versions of php you would like installed
   - "8.3"
   - "8.2"
@@ -60,7 +61,7 @@ php_modules:
 #  - cgi
 #  - cli
 #  - common
-#  - curl
+  - curl #* necessary for Composer!
 #  - dba
 #  - decimal
 #  - dev
