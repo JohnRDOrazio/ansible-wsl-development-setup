@@ -1,56 +1,56 @@
 ---
-  - name: "Collecting SSH and/or GPG key passphrase from user input"
-    pause:
-      prompt: "Enter the passphrase for the SSH and/or GPG keys"
-      echo: yes
-    register: passphrase_result
-    when: ssh_key.stat.exists == False or gpg_key_exists == False
+- name: "Collecting SSH and/or GPG key passphrase from user input"
+  pause:
+    prompt: "Enter the passphrase for the SSH and/or GPG keys"
+    echo: true
+  register: passphrase_result
+  when: not ssh_key.stat.exists or not gpg_key_exists
 
-  - name: "Storing user input to reusable fact"
-    set_fact:
-      ssh_passphrase: "{{ passphrase_result.user_input }}"
-      gpg_passphrase: "{{ passphrase_result.user_input }}"
-    when: ssh_key.stat.exists == False or gpg_key_exists == False
+- name: "Storing user input to reusable fact"
+  set_fact:
+    ssh_passphrase: "{{ passphrase_result.user_input }}"
+    gpg_passphrase: "{{ passphrase_result.user_input }}"
+  when: not ssh_key.stat.exists or not gpg_key_exists
 
-  - name: "Generate SSH key {{ ssh_key_filename }} when it does not already exist"
-    user:
-      name: "{{ ansible_user_id }}"
-      generate_ssh_key: true
-      ssh_key_type: ed25519
-      ssh_key_comment: "{{ github_email }}"
-      ssh_key_file: ".ssh/{{ ssh_key_filename }}"
-      ssh_key_passphrase: "{{ ssh_passphrase }}"
-      force: false
-    when: not ssh_key.stat.exists
+- name: "Generate SSH key {{ ssh_key_filename }} when it does not already exist"
+  user:
+    name: "{{ ansible_user_id }}"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "{{ github_email }}"
+    ssh_key_file: ".ssh/{{ ssh_key_filename }}"
+    ssh_key_passphrase: "{{ ssh_passphrase }}"
+    force: false
+  when: not ssh_key.stat.exists
 
-  - name: "Read SSH public key"
-    shell: "cat ~/.ssh/{{ ssh_key_filename }}.pub"
-    register: ssh_key_contents
-    changed_when: false
+- name: "Read SSH public key"
+  shell: "cat ~/.ssh/{{ ssh_key_filename }}.pub"
+  register: ssh_key_contents
+  changed_when: false
 
-  - name: "Copy SSH public key to reusable fact"
-    set_fact:
-      ssh_key_public: "{{ ssh_key_contents.stdout | trim | regex_replace(' ' + github_email + '$','') }}"
+- name: "Copy SSH public key to reusable fact"
+  set_fact:
+    ssh_key_public: "{{ ssh_key_contents.stdout | trim | regex_replace(' ' + github_email + '$', '') }}"
 
-  - name: "Report content of SSH public key"
-    debug:
-      var: ssh_key_public
+- name: "Report content of SSH public key"
+  debug:
+    var: ssh_key_public
 
-  #there is probably a better way of doing this with Ansible, using the authorized_key module ...
-  - name: "Ensure remote server has a copy of the SSH key"
-    shell: "ssh-copy-id -i ~/.ssh/{{ ssh_key_filename }}.pub {{ remote_server_user }}@{{ remote_server_ip }}"
-    register: ssh_copy_keys
-    when: remote_server_authorize_key
-    changed_when: ssh_copy_keys.stdout_lines | length > 0
+# there is probably a better way of doing this with Ansible, using the authorized_key module ...
+- name: "Ensure remote server has a copy of the SSH key"
+  shell: "ssh-copy-id -i ~/.ssh/{{ ssh_key_filename }}.pub {{ remote_server_user }}@{{ remote_server_ip }}"
+  register: ssh_copy_keys
+  when: remote_server_authorize_key
+  changed_when: ssh_copy_keys.stdout_lines | length > 0
 
-  - name: "SSH key distribution"
-    block:
+- name: "SSH key distribution"
+  block:
 
     - name: "Check Github profile current SSH keys"
       uri:
         url: https://api.github.com/user/keys
         method: GET
-        return_content: yes
+        return_content: true
         status_code: 200
         body_format: json
         headers:
@@ -65,7 +65,7 @@
 
     - name: "Filter newly generated SSH public key from Github keys"
       set_fact:
-        key_exists_on_github: "{{ github_keys.json | json_query('[?key==`' + ssh_key_public + '`]') | length | bool}}"
+        key_exists_on_github: "{{ github_keys.json | json_query('[?key==`' + ssh_key_public + '`]') | length | bool }}"
 
     - name: "Report whether key exists already on Github"
       debug:
@@ -75,12 +75,12 @@
       uri:
         url: https://api.github.com/user/keys
         method: POST
-        return_content: yes
+        return_content: true
         status_code: 201
         body_format: json
         headers:
           Accept: "application/vnd.github+json"
-          Authorization: "Bearer {{github_api_token}}"
+          Authorization: "Bearer {{ github_api_token }}"
           X-Github-Api-Version: "2022-11-28"
         body: "{\"title\":\"{{ github_key_name }}\",\"key\":\"{{ ssh_key_public }}\"}"
       register: github_newkey
@@ -91,8 +91,9 @@
         var: github_newkey.json
       when: not key_exists_on_github
 
-  - name: "GPG key generation"
-    block:
+- name: "GPG key generation"
+  when: not gpg_key_exists
+  block:
 
     - name: "Generate GPG key for certifying, signing and encrypting using the latest ed25519 algorithm"
       shell: >
@@ -123,10 +124,9 @@
       debug:
         var: gpg_key_armor_A.stdout
 
-    when: not gpg_key_exists
-
-  - name: "Get reference to existing GPG key"
-    block:
+- name: "Get reference to existing GPG key"
+  when: gpg_key_exists
+  block:
 
     - name: "List GPG keys in long format"
       shell: gpg --list-secret-keys --keyid-format=long
@@ -154,17 +154,15 @@
       debug:
         var: gpg_key_armor_B.stdout
 
-    when: gpg_key_exists
 
-
-  - name: "GPG key distribution"
-    block:
+- name: "GPG key distribution"
+  block:
 
     - name: "Check Github profile current GPG keys"
       uri:
         url: https://api.github.com/user/gpg_keys
         method: GET
-        return_content: yes
+        return_content: true
         status_code: 200
         body_format: json
         headers:
@@ -193,7 +191,7 @@
       uri:
         url: https://api.github.com/user/gpg_keys
         method: POST
-        return_content: yes
+        return_content: true
         status_code: 201
         body_format: json
         headers:
@@ -211,87 +209,104 @@
         var: github_gpgkey.json
       when: not gpg_key_exists_on_github
 
-  - name: "Ensure keychain is installed: update apt cache"
-    apt: update_cache=true cache_valid_time=86400
-    become: yes
+- name: "Ensure keychain is installed: update apt cache"
+  apt:
+    update_cache: true
+    cache_valid_time: 86400
+  become: true
 
-  - name: "Ensure keychain is installed"
-    apt:
-      name: keychain
-      state: present
-    become: yes
+- name: "Ensure keychain is installed"
+  apt:
+    name: keychain
+    state: present
+  become: true
 
-  - name: "Ensure keychain is added to user profile (.bashrc)"
-    blockinfile:
-      block: |
-        export GPG_TTY=$(tty)
-        eval $(keychain --agents ssh,gpg --eval {{ ssh_key_filename }} {{ gpg_key_id }})
-      marker_begin: "keychain START"
-      marker_end: "keychain END"
-      mode: 0644
-      path: "~/.bashrc"
-      state: present
+- name: "Ensure keychain is added to user profile (.bashrc)"
+  blockinfile:
+    block: |
+      export GPG_TTY=$(tty)
+      eval $(keychain --agents ssh,gpg --eval {{ ssh_key_filename }} {{ gpg_key_id }})
+    marker_begin: "keychain START"
+    marker_end: "keychain END"
+    mode: "0644"
+    path: "~/.bashrc"
+    state: present
 
-  - name: "Update GPG agent default cache TTL"
-    lineinfile:
-      path: "~/.gnupg/gpg-agent.conf"
-      search_string: 'default-cache-ttl '
-      line: "default-cache-ttl {{ gpg_default_cache_ttl }}"
-      create: yes
-      state: present
+- name: "Update GPG agent default cache TTL"
+  lineinfile:
+    path: "~/.gnupg/gpg-agent.conf"
+    search_string: 'default-cache-ttl '
+    line: "default-cache-ttl {{ gpg_default_cache_ttl }}"
+    create: true
+    state: present
 
-  - name: "Update GPG agent max cache TTL"
-    lineinfile:
-      path: "~/.gnupg/gpg-agent.conf"
-      search_string: 'max-cache-ttl '
-      line: "max-cache-ttl {{ gpg_max_cache_ttl }}"
-      create: yes
-      state: present
+- name: "Update GPG agent max cache TTL"
+  lineinfile:
+    path: "~/.gnupg/gpg-agent.conf"
+    search_string: 'max-cache-ttl '
+    line: "max-cache-ttl {{ gpg_max_cache_ttl }}"
+    create: true
+    state: present
 
-  - name: "Update GPG agent default cache TTL SSH"
-    lineinfile:
-      path: "~/.gnupg/gpg-agent.conf"
-      search_string: 'default-cache-ttl-ssh '
-      line: "default-cache-ttl-ssh {{ gpg_default_cache_ttl_ssh }}"
-      create: yes
-      state: present
+- name: "Update GPG agent default cache TTL SSH"
+  lineinfile:
+    path: "~/.gnupg/gpg-agent.conf"
+    search_string: 'default-cache-ttl-ssh '
+    line: "default-cache-ttl-ssh {{ gpg_default_cache_ttl_ssh }}"
+    create: true
+    state: present
 
-  - name: "Update GPG agent max cache TTL SSH"
-    lineinfile:
-      path: "~/.gnupg/gpg-agent.conf"
-      search_string: 'max-cache-ttl-ssh'
-      line: "max-cache-ttl-ssh {{ gpg_max_cache_ttl_ssh }}"
-      create: yes
-      state: present
+- name: "Update GPG agent max cache TTL SSH"
+  lineinfile:
+    path: "~/.gnupg/gpg-agent.conf"
+    search_string: 'max-cache-ttl-ssh'
+    line: "max-cache-ttl-ssh {{ gpg_max_cache_ttl_ssh }}"
+    create: true
+    state: present
 
-  - name: "Check if git global config exists at all"
-    stat:
-      path: ~/.gitconfig
-    register: gitconfig_global
+- name: "Check if git global config exists at all"
+  stat:
+    path: ~/.gitconfig
+  register: gitconfig_global
 
-  # - name: "Check if git default user is set"
-  #   shell: git config --global user.name
-  #   register: git_default_user
-  #   ignore_errors: true
-  #   changed_when: false
+# - name: "Check if git default user is set"
+#   shell: git config --global user.name
+#   register: git_default_user
+#   ignore_errors: true
+#   changed_when: false
 
-  # - name: "Check if git default email is set"
-  #   shell: git config --global user.email
-  #   register: git_default_email
-  #   ignore_errors: true
-  #   changed_when: false
+# - name: "Check if git default email is set"
+#   shell: git config --global user.email
+#   register: git_default_email
+#   ignore_errors: true
+#   changed_when: false
 
-  # - name: "Check if git default signing key is set"
-  #   shell: git config --global user.signingkey
-  #   register: git_default_signingkey
-  #   ignore_errors: true
-  #   changed_when: false
+# - name: "Check if git default signing key is set"
+#   shell: git config --global user.signingkey
+#   register: git_default_signingkey
+#   ignore_errors: true
+#   changed_when: false
 
-  - name: "Set git defaults"
-    shell: |
-      git config --global user.name "{{ git_user_name }}"
-      git config --global user.email "{{ git_user_email }}"
-      git config --global user.signingkey "{{ gpg_key_id }}"
-      git config --global init.defaultbranch "{{ git_default_init_branch }}"
-      git config --global commit.gpgsign "{{ git_commit_gpgsign }}"
-    when: not gitconfig_global.stat.exists
+- name: "Set git defaults"
+  when: not gitconfig_global.stat.exists
+  block:
+    - git_config:
+        scope: global
+        name: user.name
+        value: "{{ git_user_name }}"
+    - git_config:
+        scope: global
+        name: user.email
+        value: "{{ git_user_email }}"
+    - git_config:
+        scope: global
+        name: user.signingkey
+        value: "{{ gpg_key_id }}"
+    - git_config:
+        scope: global
+        name: commit.gpgsign
+        value: "{{ git_commit_gpgsign }}"
+    - git_config:
+        scope: global
+        name: init.defaultbranch
+        value: "{{ git_default_init_branch }}"
