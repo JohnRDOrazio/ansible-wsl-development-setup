@@ -177,7 +177,7 @@
 
     - name: "Filter GPG key from Github keys"
       set_fact:
-        gpg_key_exists_on_github: "{{ github_gpg_keys.json | json_query('[?key_id==`' + gpg_key_id + '`]') | length | bool}}"
+        gpg_key_exists_on_github: "{{ github_gpg_keys.json | json_query('[?key_id==`' + gpg_key_id + '`]') | length | bool }}"
 
     - name: "Report whether key exists already on Github"
       debug:
@@ -196,7 +196,7 @@
         body_format: json
         headers:
           Accept: "application/vnd.github+json"
-          Authorization: "Bearer {{github_api_token}}"
+          Authorization: "Bearer {{ github_api_token }}"
           X-Github-Api-Version: "2022-11-28"
         body:
           name: "{{ gpg_realname }} ({{ github_key_name }}) <{{ gpg_useremail }}>"
@@ -245,7 +245,6 @@
     path: "~/.gnupg/gpg-agent.conf"
     search_string: 'max-cache-ttl '
     line: "max-cache-ttl {{ gpg_max_cache_ttl }}"
-    create: true
     state: present
 
 - name: "Update GPG agent default cache TTL SSH"
@@ -253,7 +252,6 @@
     path: "~/.gnupg/gpg-agent.conf"
     search_string: 'default-cache-ttl-ssh '
     line: "default-cache-ttl-ssh {{ gpg_default_cache_ttl_ssh }}"
-    create: true
     state: present
 
 - name: "Update GPG agent max cache TTL SSH"
@@ -261,7 +259,6 @@
     path: "~/.gnupg/gpg-agent.conf"
     search_string: 'max-cache-ttl-ssh'
     line: "max-cache-ttl-ssh {{ gpg_max_cache_ttl_ssh }}"
-    create: true
     state: present
 
 - name: "Check if git global config exists at all"

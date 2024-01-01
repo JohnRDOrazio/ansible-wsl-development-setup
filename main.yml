@@ -8,194 +8,194 @@
 
   tasks:
 
-  - name: "Check if SSH key {{ ssh_key_filename }} exists"
-    stat:
-      path: "~/.ssh/{{ ssh_key_filename }}"
-    register: ssh_key
+    - name: "Check if SSH key {{ ssh_key_filename }} exists"
+      stat:
+        path: "~/.ssh/{{ ssh_key_filename }}"
+      register: ssh_key
 
-  - name: "Report whether the SSH key {{ ssh_key_filename }} exists"
-    debug:
-      msg: "The SSH key {{ ssh_key_filename }} {{  'DOES' if ssh_key.stat.exists else 'DOES NOT' }} exist"
+    - name: "Report whether the SSH key {{ ssh_key_filename }} exists"
+      debug:
+        msg: "The SSH key {{ ssh_key_filename }} {{  'DOES' if ssh_key.stat.exists else 'DOES NOT' }} exist"
 
-  - name: "Check whether a GPG key already exists: list secret keys"
-    shell: gpg --list-secret-keys
-    args:
-      executable: /bin/bash
-    register: gpg_list_secret_keys
-    changed_when: false
+    - name: "Check whether a GPG key already exists: list secret keys"
+      shell: gpg --list-secret-keys
+      args:
+        executable: /bin/bash
+      register: gpg_list_secret_keys
+      changed_when: false
 
-  - name: "Check whether a GPG key already exists: calculate result of list secret keys"
-    set_fact:
-      gpg_key_exists: "{{ (gpg_list_secret_keys.stdout | length > 0) and (gpg_list_secret_keys.stdout | regex_search('sec   ed25519 202[0-9]') | length > 0) }}"
+    - name: "Check whether a GPG key already exists: calculate result of list secret keys"
+      set_fact:
+        gpg_key_exists: "{{ (gpg_list_secret_keys.stdout | length > 0) and (gpg_list_secret_keys.stdout | regex_search('sec   ed25519 202[0-9]') | length > 0) }}"
 
-  - name: "Report existence of a GPG key"
-    debug:
-      msg: "A GPG secret key {{ 'DOES' if gpg_key_exists else 'DOES NOT' }} currently exist on this server"
+    - name: "Report existence of a GPG key"
+      debug:
+        msg: "A GPG secret key {{ 'DOES' if gpg_key_exists else 'DOES NOT' }} currently exist on this server"
 
-  - name: "Doing tasks regarding SSH and/or GPG key generation and distribution when {{ ssh_key_filename }} DOES NOT exist OR a GPG key DOES NOT exist"
-    include_tasks: generate_ssh_or_gpg.yml
+    - name: "Doing tasks regarding SSH and/or GPG key generation and distribution when {{ ssh_key_filename }} DOES NOT exist OR a GPG key DOES NOT exist"
+      include_tasks: generate_ssh_or_gpg.yml
 
-  - name: "Check if NVM is installed"
-    stat:
-      path: "~/.nvm/nvm.sh"
-    register: nvm_executable
+    - name: "Check if NVM is installed"
+      stat:
+        path: "~/.nvm/nvm.sh"
+      register: nvm_executable
 
-  - name: "Report whether NVM is installed"
-    debug:
-      msg: "NVM apparently {{ 'IS' if nvm_executable.stat.exists else 'IS NOT' }} installed"
+    - name: "Report whether NVM is installed"
+      debug:
+        msg: "NVM apparently {{ 'IS' if nvm_executable.stat.exists else 'IS NOT' }} installed"
 
-  - name: "Ensure NVM is installed and Node JS is at the latest LTS version"
-    include_role:
-      name: ansible-role-nvm
-    vars:
-      nvm_profile: "~/.bashrc"
-    when: not nvm_executable.stat.exists
+    - name: "Ensure NVM is installed and Node JS is at the latest LTS version"
+      include_role:
+        name: ansible-role-nvm
+      vars:
+        nvm_profile: "~/.bashrc"
+      when: not nvm_executable.stat.exists
 
-  - name: "Check whether NVM seems to be working"
-    shell: |
-      source ~/.nvm/nvm.sh && command -v nvm
-    args:
-      executable: /bin/bash
-    register: nvm_working
-    ignore_errors: true
-    changed_when: false
+    - name: "Check whether NVM seems to be working"
+      shell: |
+        source ~/.nvm/nvm.sh && command -v nvm
+      args:
+        executable: /bin/bash
+      register: nvm_working
+      ignore_errors: true
+      changed_when: false
 
-  - name: "Report whether NVM seems to be working"
-    debug:
-      msg: "NVM apparently {{ 'IS' if nvm_working.rc == 0 and nvm_working.stdout == 'nvm' else 'IS NOT' }} working alright"
+    - name: "Report whether NVM seems to be working"
+      debug:
+        msg: "NVM apparently {{ 'IS' if nvm_working.rc == 0 and nvm_working.stdout == 'nvm' else 'IS NOT' }} working alright"
 
-  - name: "Check if AVN is installed"
-    stat:
-      path: "~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/bin-public/avn"
-    register: avn_executable
+    - name: "Check if AVN is installed"
+      stat:
+        path: "~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/bin-public/avn"
+      register: avn_executable
 
-  - name: "Report whether the AVN executable exists"
-    debug:
-      msg: "The AVN executable {{  'exists' if avn_executable.stat.exists else 'DOES NOT exist' }}"
+    - name: "Report whether the AVN executable exists"
+      debug:
+        msg: "The AVN executable {{  'exists' if avn_executable.stat.exists else 'DOES NOT exist' }}"
 
-  - name: "Ensure AVN is installed if the executable does not exist"
-    shell: |
-      source ~/.nvm/nvm.sh && nvm install 10.24.1
-      npm install -g avn avn-nvm avn-n
-      sed -i 's/bash_profile/bashrc/' ~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/lib/setup/profile.js
-      avn setup
-    args:
-      executable: /bin/bash
-    when: not avn_executable.stat.exists
+    - name: "Ensure AVN is installed if the executable does not exist"
+      shell: |
+        source ~/.nvm/nvm.sh && nvm install 10.24.1
+        npm install -g avn avn-nvm avn-n
+        sed -i 's/bash_profile/bashrc/' ~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/lib/setup/profile.js
+        avn setup
+      args:
+        executable: /bin/bash
+      when: not avn_executable.stat.exists
 
-  # Let's not worry about Yarn for now, seeing it has moved to versions 2, 3 and even 4
-  # - name: "Ensure yarn is installed"
-  #   community.general.npm:
-  #     name: yarn
-  #     global: true
+    # Let's not worry about Yarn for now, seeing it has moved to versions 2, 3 and even 4
+    # - name: "Ensure yarn is installed"
+    #   community.general.npm:
+    #     name: yarn
+    #     global: true
 
-  - name: "Check if RBENV is installed"
-    stat:
-      path: "~/.rbenv/bin/rbenv"
-    register: rbenv_executable
+    - name: "Check if RBENV is installed"
+      stat:
+        path: "~/.rbenv/bin/rbenv"
+      register: rbenv_executable
 
-  - name: "Report whether RBENV is installed"
-    debug:
-      msg: "RBENV apparently {{ 'IS' if rbenv_executable.stat.exists else 'IS NOT' }} installed"
+    - name: "Report whether RBENV is installed"
+      debug:
+        msg: "RBENV apparently {{ 'IS' if rbenv_executable.stat.exists else 'IS NOT' }} installed"
 
-  - name: "Check whether RBENV seems to be working if installed"
-    shell: |
-      command -v ~/.rbenv/bin/rbenv
-    args:
-      executable: /bin/bash
-    when: rbenv_executable.stat.exists
-    register: rbenv_working
-    ignore_errors: true
-    changed_when: false
+    - name: "Check whether RBENV seems to be working if installed"
+      shell: |
+        command -v ~/.rbenv/bin/rbenv
+      args:
+        executable: /bin/bash
+      when: rbenv_executable.stat.exists
+      register: rbenv_working
+      ignore_errors: true
+      changed_when: false
 
-  - name: "Report whether RBENV seems to be working"
-    debug:
-      msg: "RBENV apparently {{ 'IS' if rbenv_working.rc == 0 and (rbenv_working.stdout | length > 0) else 'IS NOT' }} working alright"
-    when: rbenv_executable.stat.exists
+    - name: "Report whether RBENV seems to be working"
+      debug:
+        msg: "RBENV apparently {{ 'IS' if rbenv_working.rc == 0 and (rbenv_working.stdout | length > 0) else 'IS NOT' }} working alright"
+      when: rbenv_executable.stat.exists
 
-  - name: "Ensure RBENV is installed if the executable does not exist"
-    shell: |
-      curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
-    args:
-      executable: /bin/bash
-    when: not rbenv_executable.stat.exists
-    register: rbenv_installation
+    - name: "Ensure RBENV is installed if the executable does not exist"
+      shell: |
+        curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+      args:
+        executable: /bin/bash
+      when: not rbenv_executable.stat.exists
+      register: rbenv_installation
 
-  - name: "Report on RBENV installation when not previously installed"
-    debug:
-      var: rbenv_installation
-    when: not rbenv_executable.stat.exists
+    - name: "Report on RBENV installation when not previously installed"
+      debug:
+        var: rbenv_installation
+      when: not rbenv_executable.stat.exists
 
-  - name: Add RBENV to user profile (.bashrc)
-    blockinfile:
-      block: |
-        eval "$($HOME/.rbenv/bin/rbenv init - bash)"
-      create: true
-      marker_begin: "Installed rbenv via https://github.com/rbenv/rbenv-installer START"
-      marker_end: "https://github.com/rbenv/rbenv-installer END"
-      mode: "0644"
-      path: "~/.bashrc"
-      state: present
-    when: not rbenv_executable.stat.exists
-
-  - name: Run RBENV-doctor
-    shell: |
-      eval "$($HOME/.rbenv/bin/rbenv init - bash)"
-      curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
-    args:
-      executable: /bin/bash
-    register: rbenv_doctor
-    changed_when: false
-
-  - name: Ruby env doctor's report
-    debug:
-      var: rbenv_doctor
-
-  - name: Determine whether ruby is installed
-    set_fact:
-      ruby_not_installed: "{{ 'Counting installed Ruby versions: none' in rbenv_doctor.stdout }}"
-
-  - name: Report whether ruby is installed
-    debug:
-      msg: "Ruby {{ 'IS NOT' if ruby_not_installed else 'IS' }} installed"
-
-  - name: Install ruby if not already installed
-    when: ansible_os_family == 'Debian' and ruby_not_installed
-    block:
-
-      - name: Define ruby_build_packages
-        set_fact:
-          ruby_build_packages: "{{ __ruby_build_packages }}"
-        when: ruby_build_packages is not defined
-
-      - name: "Prepare build environment: update apt cache"
-        apt:
-          update_cache: true
-          cache_valid_time: 86400
-        become: true
-
-      - name: Install packages required to build ruby
-        apt:
-          name: "{{ ruby_build_packages }}"
-          state: present
-        become: true
-        register: ruby_build_packages_install
-        debugger: on_failed
-
-      - name: Report installation of packages required to build ruby
-        debug:
-          var: ruby_build_packages_install
-
-      - name: Install latest version of Ruby
-        shell: |
+    - name: Add RBENV to user profile (.bashrc)
+      blockinfile:
+        block: |
           eval "$($HOME/.rbenv/bin/rbenv init - bash)"
-          rbenv install $(rbenv install -l | grep -v - | tail -1)
-          rbenv global $(rbenv install -l | grep -v - | tail -1)
-        args:
-          executable: /bin/bash
-        register: ruby_install
-        changed_when: ruby_install.rc == 0
+        create: true
+        marker_begin: "Installed rbenv via https://github.com/rbenv/rbenv-installer START"
+        marker_end: "https://github.com/rbenv/rbenv-installer END"
+        mode: "0644"
+        path: "~/.bashrc"
+        state: present
+      when: not rbenv_executable.stat.exists
 
-      - name: Report ruby install
-        debug:
-          var: ruby_install
+    - name: Run RBENV-doctor
+      shell: |
+        eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+        curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
+      args:
+        executable: /bin/bash
+      register: rbenv_doctor
+      changed_when: false
+
+    - name: Ruby env doctor's report
+      debug:
+        var: rbenv_doctor
+
+    - name: Determine whether ruby is installed
+      set_fact:
+        ruby_not_installed: "{{ 'Counting installed Ruby versions: none' in rbenv_doctor.stdout }}"
+
+    - name: Report whether ruby is installed
+      debug:
+        msg: "Ruby {{ 'IS NOT' if ruby_not_installed else 'IS' }} installed"
+
+    - name: Install ruby if not already installed
+      when: ansible_os_family == 'Debian' and ruby_not_installed
+      block:
+
+        - name: Define ruby_build_packages
+          set_fact:
+            ruby_build_packages: "{{ __ruby_build_packages }}"
+          when: ruby_build_packages is not defined
+
+        - name: "Prepare build environment: update apt cache"
+          apt:
+            update_cache: true
+            cache_valid_time: 86400
+          become: true
+
+        - name: Install packages required to build ruby
+          apt:
+            name: "{{ ruby_build_packages }}"
+            state: present
+          become: true
+          register: ruby_build_packages_install
+          debugger: on_failed
+
+        - name: Report installation of packages required to build ruby
+          debug:
+            var: ruby_build_packages_install
+
+        - name: Install latest version of Ruby
+          shell: |
+            eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+            rbenv install $(rbenv install -l | grep -v - | tail -1)
+            rbenv global $(rbenv install -l | grep -v - | tail -1)
+          args:
+            executable: /bin/bash
+          register: ruby_install
+          changed_when: ruby_install.rc == 0
+
+        - name: Report ruby install
+          debug:
+            var: ruby_install
