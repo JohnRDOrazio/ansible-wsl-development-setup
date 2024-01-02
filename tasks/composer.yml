@@ -1,0 +1,44 @@
+---
+- name: Check if Composer is installed
+  shell: composer -V
+  args:
+    executable: /bin/bash
+  register: composer_present_check
+  changed_when: false
+
+- name: Register Composer installation state
+  debug:
+    msg: "Composer {{ 'IS' if composer_present_check.rc == 0 else 'IS NOT' }} installed"
+
+- name: Download Composer
+  when: composer_present_check.rc != 0
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: ./composer-setup.php
+    mode: "0440"
+    checksum: "sha384:https://composer.github.io/installer.sig"
+
+- name: Install Composer
+  when: composer_present_check.rc != 0
+  become: true
+  shell: |
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
+    composer self-update
+    rm composer-setup.php
+  args:
+    executable: /bin/bash
+  register: composer_install_check
+  failed_when: composer_install_check.rc != 0
+
+- name: Check Composer version
+  when: composer_present_check.rc == 0 or composer_install_check.rc == 0
+  shell: composer -V
+  args:
+    executable: /bin/bash
+  register: composer_version_check
+  changed_when: false
+
+- name: Report Composer version
+  when: composer_version_check.rc == 0
+  debug:
+    var: composer_version_check.stdout

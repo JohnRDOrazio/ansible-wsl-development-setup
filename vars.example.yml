@@ -2,6 +2,19 @@
 # lines ending in a comment with an asterisk indicate values that you really need to set
 # once the values are set, rename or copy this to vars.yml
 
+generate_ssh_key: true
+add_ssh_key_to_github: true
+generate_gpg_key: true
+add_gpg_key_to_github: true
+install_keychain: true
+set_gpg_agent_config: true
+set_git_global_config: true
+install_nvm_node: true
+install_avn: true
+install_rbenv_ruby: true
+install_php: true
+install_composer: true
+
 #the playbook will create an ed25519 key rather than an RSA or DSA key
 #the default name for the key would be id_ed25519
 #you can change this if for whatever reason you prefer to name your key differently...
@@ -44,8 +57,6 @@ remote_server_user: remoteserveruser #* when remote_server_authorize_key is true
 #useful for updating apt cache and apt installing packages
 ansible_become_password: sudopasswordhere #*
 
-install_php: true
-install_composer: true
 php_versions: # list here the versions of php you would like installed
   - "8.3"
   - "8.2"
@@ -59,15 +70,15 @@ php_modules:
 #  - bcmath
 #  - bz2
 #  - cgi
-#  - cli
+#  - cli        #* recommended for running PHP on the command line
 #  - common
-  - curl #* necessary for Composer!
+#  - curl       #* needed for Composer!
 #  - dba
 #  - decimal
-#  - dev
+#  - dev        #* needed for PECL installs
 #  - ds
 #  - enchant
-#  - fpm
+#  - fpm        #* needed for Apache or Nginx PHP-FPM
 #  - gd
 #  - gearman
 #  - gmagick
@@ -76,7 +87,7 @@ php_modules:
 #  - grpc
 #  - http
 #  - igbinary
-#  - imagick
+#  - imagick    #* useful for image manipulation, for example in wordpress sites... requires imagemagick to be installed
 #  - imap
 #  - inotify
 #  - interbase

@@ -1,0 +1,56 @@
+---
+- name: Install NVM and Node
+  when: install_nvm_node
+  block:
+
+    - name: "Check if NVM is installed"
+      stat:
+        path: "~/.nvm/nvm.sh"
+      register: nvm_executable
+
+    - name: "Report whether NVM is installed"
+      debug:
+        msg: "NVM apparently {{ 'IS' if nvm_executable.stat.exists else 'IS NOT' }} installed"
+
+    - name: "Ensure NVM is installed and Node JS is at the latest LTS version"
+      include_role:
+        name: ansible-role-nvm
+      vars:
+        nvm_profile: "~/.bashrc"
+      when: not nvm_executable.stat.exists
+
+    - name: "Check whether NVM seems to be working"
+      shell: |
+        source ~/.nvm/nvm.sh && command -v nvm
+      args:
+        executable: /bin/bash
+      register: nvm_working
+      ignore_errors: true
+      changed_when: false
+
+    - name: "Report whether NVM seems to be working"
+      debug:
+        msg: "NVM apparently {{ 'IS' if nvm_working.rc == 0 and nvm_working.stdout == 'nvm' else 'IS NOT' }} working alright"
+
+- name: Install AVN
+  when: install_avn
+  block:
+
+    - name: "Check if AVN is installed"
+      stat:
+        path: "~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/bin-public/avn"
+      register: avn_executable
+
+    - name: "Report whether the AVN executable exists"
+      debug:
+        msg: "The AVN executable {{  'exists' if avn_executable.stat.exists else 'DOES NOT exist' }}"
+
+    - name: "Ensure AVN is installed if the executable does not exist"
+      shell: |
+        source ~/.nvm/nvm.sh && nvm install 10.24.1
+        npm install -g avn avn-nvm avn-n
+        sed -i 's/bash_profile/bashrc/' ~/.nvm/versions/node/v10.24.1/lib/node_modules/avn/lib/setup/profile.js
+        avn setup
+      args:
+        executable: /bin/bash
+      when: not avn_executable.stat.exists

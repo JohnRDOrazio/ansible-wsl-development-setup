@@ -1,0 +1,111 @@
+---
+- name: "Check if RBENV is installed"
+  stat:
+    path: "~/.rbenv/bin/rbenv"
+  register: rbenv_executable
+
+- name: "Report whether RBENV is installed"
+  debug:
+    msg: "RBENV apparently {{ 'IS' if rbenv_executable.stat.exists else 'IS NOT' }} installed"
+
+- name: "Check whether RBENV seems to be working if installed"
+  shell: |
+    command -v ~/.rbenv/bin/rbenv
+  args:
+    executable: /bin/bash
+  when: rbenv_executable.stat.exists
+  register: rbenv_working
+  ignore_errors: true
+  changed_when: false
+
+- name: "Report whether RBENV seems to be working"
+  debug:
+    msg: "RBENV apparently {{ 'IS' if rbenv_working.rc == 0 and (rbenv_working.stdout | length > 0) else 'IS NOT' }} working alright"
+  when: rbenv_executable.stat.exists
+
+- name: "Ensure RBENV is installed if the executable does not exist"
+  shell: |
+    curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+  args:
+    executable: /bin/bash
+  when: not rbenv_executable.stat.exists
+  register: rbenv_installation
+
+- name: "Report on RBENV installation when not previously installed"
+  debug:
+    var: rbenv_installation
+  when: not rbenv_executable.stat.exists
+
+- name: Add RBENV to user profile (.bashrc)
+  blockinfile:
+    block: |
+      eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+    create: true
+    marker_begin: "Installed rbenv via https://github.com/rbenv/rbenv-installer START"
+    marker_end: "https://github.com/rbenv/rbenv-installer END"
+    mode: "0644"
+    path: "~/.bashrc"
+    state: present
+  when: not rbenv_executable.stat.exists
+
+- name: Run RBENV-doctor
+  shell: |
+    eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+    curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
+  args:
+    executable: /bin/bash
+  register: rbenv_doctor
+  changed_when: false
+
+- name: Ruby env doctor's report
+  debug:
+    var: rbenv_doctor
+
+- name: Determine whether ruby is installed
+  set_fact:
+    ruby_not_installed: "{{ 'Counting installed Ruby versions: none' in rbenv_doctor.stdout }}"
+
+- name: Report whether ruby is installed
+  debug:
+    msg: "Ruby {{ 'IS NOT' if ruby_not_installed else 'IS' }} installed"
+
+- name: Install ruby if not already installed
+  when: ansible_os_family == 'Debian' and ruby_not_installed
+  block:
+
+    - name: Define ruby_build_packages
+      set_fact:
+        ruby_build_packages: "{{ __ruby_build_packages }}"
+      when: ruby_build_packages is not defined
+
+    - name: "Prepare build environment: update apt cache"
+      apt:
+        update_cache: true
+        cache_valid_time: 86400
+      become: true
+
+    - name: Install packages required to build ruby
+      apt:
+        name: "{{ ruby_build_packages }}"
+        state: present
+      become: true
+      register: ruby_build_packages_install
+      debugger: on_failed
+
+    - name: Report installation of packages required to build ruby
+      debug:
+        var: ruby_build_packages_install
+
+    - name: Install latest version of Ruby
+      shell: |
+        eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+        rbenv install $(rbenv install -l | grep -v - | tail -1)
+        rbenv global $(rbenv install -l | grep -v - | tail -1)
+      args:
+        executable: /bin/bash
+      register: ruby_install
+      changed_when: ruby_install.rc == 0
+
+    - name: Report ruby install
+      debug:
+        var: ruby_install
