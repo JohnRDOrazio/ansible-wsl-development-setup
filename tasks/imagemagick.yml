@@ -1,0 +1,82 @@
+---
+- name: "Install optional ImageMagick dependencies"
+  become: true
+  apt:
+    name: "ghostscript"
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: "Test ghostscript"
+  command: gs -h
+  register: ghostscript
+  ignore_errors: true
+
+- name: "Report ghostscript installation"
+  when: ghostscript.rc == 0
+  debug:
+    msg: "Ghostscript is correctly installed: {{ghostscript.stdout}}"
+
+- name: "Check if ImageMagick is installed"
+  shell: convert --version
+  args:
+    executable: /bin/bash
+  register: imagemagick_install_check
+  changed_when: false
+
+- name: "Get ImageMagick version if installed"
+  when: imagemagick_install_check.rc == 0 and imagemagick_install_check.stdout | length > 0
+  set_fact:
+    imagemagick_version_detect: "{{ imagemagick_install_check.stdout_lines[0] | regex_replace('^Version: ImageMagick (.*?) ', '\\1') }}"
+
+- name: "Report ImageMagick version if installed"
+  when: imagemagick_install_check.rc == 0 and imagemagick_install_check.stdout | length > 0
+  debug:
+    msg: "ImageMagick version {{ imagemagick_version_detect }} is currently installed"
+
+- name: "Download and extract latest ImageMagick tarball when not installed"
+  when: imagemagick_install_check.rc != 0 or imagemagick_install_check.stdout == ""
+  block:
+
+    - name: "Download latest ImageMagick tarball"
+      unarchive:
+        src: https://imagemagick.org/archive/ImageMagick.tar.gz
+        dest: ./ImageMagick
+        remote_src: true
+        creates: ./ImageMagick
+
+    - name: "Configure"
+      command: "./configure"
+      args:
+        chdir: "./ImageMagick"
+        creates: "./ImageMagick/config.status"
+
+    - name: "Build"
+      command: "make"
+      args:
+        chdir: "./ImageMagick"
+        creates: "./ImageMagick/utilites/.libs"
+
+    - name: "Install"
+      become: true
+      command: "make install"
+      args:
+        chdir: "./ImageMagick"
+
+    - name: "Link libraries"
+      become: true
+      command: "ldconfig /usr/local/lib"
+
+    - name: "Check installation"
+      command: "make check"
+      args:
+        chdir: "./ImageMagick"
+      register: imagemagick_make_check
+
+    - name: "Report ImageMagick installation"
+      debug:
+        var: imagemagick_make_check
+
+- name: "Test ImageMagick"
+  command: "convert logo: logo.gif"
+  creates: "logo.gif"

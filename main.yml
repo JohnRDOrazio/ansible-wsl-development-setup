@@ -22,9 +22,9 @@
     #     name: yarn
     #     global: true
 
-    - name: "Include RBENV and Ruby tasks"
-      include_tasks: tasks/ruby.yml
-      when: install_rbenv_ruby
+    - name: Make install imagemagick
+      include_tasks: tasks/imagemagick.yml
+      when: make_install_imagemagick
 
     - name: Enable PHP PPA and install PHP
       include_tasks: tasks/php.yml
@@ -33,3 +33,7 @@
     - name: Download and install Composer
       include_tasks: tasks/composer.yml
       when: install_composer and php_installation_check.rc == 0
+
+    - name: "Include RBENV and Ruby tasks"
+      include_tasks: tasks/ruby.yml
+      when: install_rbenv_ruby

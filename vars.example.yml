@@ -14,24 +14,25 @@ install_avn: true
 install_rbenv_ruby: true
 install_php: true
 install_composer: true
+make_install_imagemagick: true
 
-#the playbook will create an ed25519 key rather than an RSA or DSA key
-#the default name for the key would be id_ed25519
-#you can change this if for whatever reason you prefer to name your key differently...
+# the playbook will create an ed25519 key rather than an RSA or DSA key
+# the default name for the key would be id_ed25519
+# you can change this if for whatever reason you prefer to name your key differently...
 ssh_key_filename: id_ed25519
 
-#the github key name is set to facts that identify the key with the machine and WSL distribution
-#this can easily allow you to identify the key in question and distinguish it from other keys you might have on Github
-#these parameters will be used both for SSH keys and GPG keys
-#make sure to generate an API token with admin:gpg_key, admin:public_key, admin:ssh_signing_key read / write capabilities
-#see Github -> Settings -> Developer Settings -> Personal access tokens -> Tokens (classic) and generate a new token if you don’t already have one
+# the github key name is set to facts that identify the key with the machine and WSL distribution
+# this can easily allow you to identify the key in question and distinguish it from other keys you might have on Github
+# these parameters will be used both for SSH keys and GPG keys
+# make sure to generate an API token with admin:gpg_key, admin:public_key, admin:ssh_signing_key read / write capabilities
+# see Github -> Settings -> Developer Settings -> Personal access tokens -> Tokens (classic) and generate a new token if you don’t already have one
 github_key_name: "{{ansible_facts['nodename']}} {{ansible_facts['distribution']}} {{ansible_facts['distribution_major_version']}}"
 github_email: myemail@exmaple.com   #*
 github_api_token: my_api_token      #*
 
-#if GPG is used to sign commits, it makes sense for the key to be associated with the Github email address
-#however you might have reason to want to set it specifically...
-#Here you can also set the TTL for the GPG agent cache, seeing the default is 600 seconds = 10 minutes which can get frustrating
+# if GPG is used to sign commits, it makes sense for the key to be associated with the Github email address
+# however you might have reason to want to set it specifically...
+# Here you can also set the TTL for the GPG agent cache, seeing the default is 600 seconds = 10 minutes which can get frustrating
 gpg_realname: "your name here"      #*
 gpg_useremail: "{{ github_email }}"
 gpg_default_cache_ttl: 14400
@@ -39,22 +40,22 @@ gpg_max_cache_ttl: 14400
 gpg_default_cache_ttl_ssh: 14400
 gpg_max_cache_ttl_ssh: 14400
 
-#git global configuration
+# git global configuration
 git_user_name: "{{ gpg_realname }}"
 git_user_email: "{{ github_email }}"
 git_default_init_branch: "main"
 git_commit_gpgsign: "true"
 
-#setting this to true and defining ip and user will
-#copy the newly generated ssh key to a remote server
-#so that you will be easily able to SSH into the remote server
-#from the WSL instance, without supplying a password every time
+# setting this to true and defining ip and user will
+# copy the newly generated ssh key to a remote server
+# so that you will be easily able to SSH into the remote server
+# from the WSL instance, without supplying a password every time
 remote_server_authorize_key: false  #*
 remote_server_ip: "server_ip_here"   #* when remote_server_authorize_key is true
 remote_server_user: remoteserveruser #* when remote_server_authorize_key is true
 
-#this is the sudo password for the current user on the local WSL,
-#useful for updating apt cache and apt installing packages
+# this is the sudo password for the current user on the local WSL,
+# useful for updating apt cache and apt installing packages
 ansible_become_password: sudopasswordhere #*
 
 php_versions: # list here the versions of php you would like installed
@@ -141,7 +142,7 @@ php_modules:
 #  - zmq
 #  - zstd
 
-#might not want to touch this... is needed to correctly install and build ruby
+# might not want to touch this... is needed to correctly install and build ruby
 __ruby_build_packages:
   - build-essential
   - zlib1g-dev
