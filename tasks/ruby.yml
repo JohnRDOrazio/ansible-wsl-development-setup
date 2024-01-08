@@ -78,19 +78,17 @@
         ruby_build_packages: "{{ __ruby_build_packages }}"
       when: ruby_build_packages is not defined
 
-    - name: "Prepare build environment: update apt cache"
-      apt:
-        update_cache: true
-        cache_valid_time: 86400
-      become: true
-
     - name: Install packages required to build ruby
       apt:
         name: "{{ ruby_build_packages }}"
         state: present
+        update_cache: true
+        cache_valid_time: 86400
       become: true
       register: ruby_build_packages_install
-      debugger: on_failed
+      retries: 3
+      until: ruby_build_packages_install is succeeded
+      diff: true
 
     - name: Report installation of packages required to build ruby
       debug:
