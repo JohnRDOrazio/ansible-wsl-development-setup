@@ -253,14 +253,10 @@
   when: generate_ssh_key and generate_gpg_key and install_keychain
   block:
 
-    - name: "Ensure keychain is installed: update apt cache"
+    - name: "Ensure keychain is installed"
       apt:
         update_cache: true
         cache_valid_time: 86400
-      become: true
-
-    - name: "Ensure keychain is installed"
-      apt:
         name: keychain
         state: present
       become: true
