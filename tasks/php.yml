@@ -57,6 +57,7 @@
     name: "{{ php_modules_to_install }}"
     state: present
   become: true
+  diff: true
 
 - name: Check if PHP is installed correctly
   shell: php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'
