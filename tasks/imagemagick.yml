@@ -15,7 +15,7 @@
 - name: "Report ghostscript installation"
   when: ghostscript.rc == 0
   debug:
-    msg: "Ghostscript is correctly installed: {{ghostscript.stdout}}"
+    msg: "Ghostscript is correctly installed: {{ ghostscript.stdout }}"
 
 - name: "Check if ImageMagick is installed"
   shell: convert --version
