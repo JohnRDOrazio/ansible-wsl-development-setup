@@ -156,6 +156,7 @@ python_versions:
 
 python_packages:
   - "venv"
+  - "dev"
 
 # might not want to touch this... is needed to correctly install and build ruby
 __ruby_build_packages:
