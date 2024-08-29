@@ -8,7 +8,7 @@
 
 - name: Check if Ondrej Sury's PHP PPA is in this list (define regex pattern)
   set_fact:
-    pattern: "{{ 'deb \\[?(?:.*?)\\]?\\s?https?://ppa.launchpadcontent.net/ondrej/php/ubuntu/ ' ~ ansible_distribution_release ~ ' main' }}"
+    pattern: "{{ 'deb \\[?(?:.*?)\\]?\\s?https?://ppa.launchpad(?:content)?.net/ondrej/php/ubuntu/ ' ~ ansible_distribution_release ~ ' main' }}"
 
 - name: Check if Ondrej Sury's PHP PPA is in this list (run regex search)
   set_fact:

@@ -1,5 +1,5 @@
 ---
-- name: "Set up WSL with all needed packages"
+- name: Set up WSL with all needed packages
   hosts: localhost
   connection: local
 
@@ -8,11 +8,11 @@
 
   tasks:
 
-    - name: "Include SSH / GPG key tasks"
+    - name: Include SSH / GPG key tasks
       include_tasks: tasks/ssh_gpg.yml
       when: generate_ssh_key or generate_gpg_key
 
-    - name: "Install NVM / Node / AVN"
+    - name: Install NVM / Node / AVN
       include_tasks: tasks/nvm_node.yml
       when: install_nvm_node or install_avn
 
@@ -34,6 +34,10 @@
       include_tasks: tasks/composer.yml
       when: install_composer and php_installation_check.rc == 0
 
-    - name: "Include RBENV and Ruby tasks"
+    - name: Include RBENV and Ruby tasks
       include_tasks: tasks/ruby.yml
       when: install_rbenv_ruby
+
+    - name: Enable Python PPA and install desired versions of Python
+      include_tasks: tasks/python.yml
+      when: install_python

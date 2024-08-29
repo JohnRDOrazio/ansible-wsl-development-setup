@@ -1,0 +1,75 @@
+---
+- name: Get list of current PPAs
+  shell: find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb
+  register: ppa_list
+  changed_when: false
+  args:
+    executable: /bin/bash
+
+- name: Check if the Deadsnakes Python PPA is in this list (define regex pattern)
+  set_fact:
+    pattern: "{{ 'deb \\[?(?:.*?)\\]?\\s?https?://ppa.launchpad(?:content)?.net/deadsnakes/php/ubuntu/ ' ~ ansible_distribution_release ~ ' main' }}"
+
+- name: Check if the Deadsnakes Python PPA is in this list (run regex search)
+  set_fact:
+    deadsnakes_ppa_present: "{{ (ppa_list.stdout | regex_search(pattern)) }}"
+
+- name: Report whether the Deadsnakes Python PPA is already added
+  debug:
+    msg: "The Deadsnakes Python PPA {{ 'IS' if deadsnakes_ppa_present else 'IS NOT' }} already added"
+
+# Not using Ansible's apt_repository here because it doesn't install
+# the key to /etc/apt/trusted.gpg.d/, instead it uses the deprecated /etc/apt/trusted.gpg
+- name: Add the Deadsnakes Python PPA if not present
+  when: not deadsnakes_ppa_present
+  become: true
+  shell: |
+    add-apt-repository --yes ppa:deadsnakes/ppa
+    apt update
+  register: add_apt_repo_deadsnakes
+  args:
+    executable: /bin/bash
+  changed_when: add_apt_repo_deadsnakes.rc == 0
+
+- name: Define list of Python versions to install
+  set_fact:
+    python_versions_to_install: "{{ python_versions | map('regex_replace', '^(.*)$', 'python\\1') | list }}"
+
+- name: Define list of Python packages to install for each version
+  set_fact:
+    python_packages_to_install: "{{ python_packages_to_install|default([]) + (python_packages | map('regex_replace', '^(.*)$', item ~ '-\\1') | list) }}"
+  with_items: "{{ python_versions_to_install }}"
+
+- name: Report python_versions_to_install
+  debug:
+    msg:
+      python_versions_to_install: "{{ python_versions_to_install }}"
+      python_packages_to_install: "{{ python_packages_to_install }}"
+
+- name: Install Python
+  apt:
+    name: "{{ python_versions_to_install }}"
+    state: present
+  become: true
+
+- name: Install Python packages
+  apt:
+    name: "{{ python_packages_to_install }}"
+    state: present
+  become: true
+  diff: true
+
+- name: Check if Python is installed correctly
+  shell: python{{ ( python_versions | max )|quote }} -c "import sys; print(str(sys.version_info[0])+'.'+str(sys.version_info[1]))"
+  args:
+    executable: /bin/bash
+  register: python_installation_check
+  changed_when: false
+
+- name: Verify expected default PHP
+  when: python_installation_check.rc == 0
+  assert:
+    that:
+      - "python_installation_check.stdout == ( python_versions | max )"
+    fail_msg: "We expected the default version of PHP to be {{ php_versions | max }} but instead it was {{ php_installation_check.stdout }}"
+    success_msg: "Default version of PHP is in fact the expected version: {{ php_installation_check.stdout }}"

@@ -12,9 +12,10 @@ set_git_global_config: true
 install_nvm_node: true
 install_avn: true
 install_rbenv_ruby: true
-install_php: true
+install_php: true               #make sure to set the desired version(s) of PHP to install below
 install_composer: true
 make_install_imagemagick: true
+install_python: true            #make sure to set the desired version(s) of Python to install below
 
 # the playbook will create an ed25519 key rather than an RSA or DSA key
 # the default name for the key would be id_ed25519
@@ -141,6 +142,20 @@ php_modules:
 #  - zip
 #  - zmq
 #  - zstd
+
+# Supported Ubuntu and Python Versions
+# - Ubuntu 20.04 (focal) Python3.5 - Python3.7, Python3.9 - Python3.13
+# - Ubuntu 22.04 (jammy) Python3.7 - Python3.9, Python3.11 - Python3.13
+# - Ubuntu 24.04 (noble) Python3.7 - Python3.11, Python3.13
+# Note: Python 2.7 (focal, jammy), Python 3.8 (focal), Python 3.10 (jammy), Python3.12 (noble)
+#  are not provided by deadsnakes as upstream ubuntu provides those packages
+python_versions:
+  - "3.11"
+  - "3.12"
+  - "3.13"
+
+python_packages:
+  - "venv"
 
 # might not want to touch this... is needed to correctly install and build ruby
 __ruby_build_packages:
