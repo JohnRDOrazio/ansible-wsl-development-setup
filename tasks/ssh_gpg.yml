@@ -145,26 +145,13 @@
       debug:
         var: gpg_key_generation
 
-    - name: "Capture id of newly generated GPG key"
-      set_fact:
-        gpg_key_id: "{{ gpg_key_generation.stderr_lines[0] | regex_search('gpg: key (.*) marked as ultimately trusted', '\\1') | first }}"
-
-    - name: "Report id of newly generated GPG key"
-      debug:
-        var: gpg_key_id
-
-    - name: "Export newly generated GPG key in ASCII armor format"
-      shell: gpg --armor --export {{ gpg_key_id }}
+    - name: "List the newly created GPG key"
+      shell: gpg --list-secret-keys --keyid-format=long
       args:
         executable: /bin/bash
-      register: gpg_key_armor_A
-
-    - name: "Report ASCII armor export"
-      debug:
-        var: gpg_key_armor_A.stdout
 
 - name: "Get reference to existing GPG key"
-  when: generate_gpg_key and gpg_key_exists
+  when: generate_gpg_key
   block:
 
     - name: "List GPG keys in long format"
@@ -186,12 +173,12 @@
       shell: gpg --armor --export {{ gpg_key_id }}
       args:
         executable: /bin/bash
-      register: gpg_key_armor_B
+      register: gpg_key_armor
       changed_when: false
 
     - name: "Report ASCII armor export"
       debug:
-        var: gpg_key_armor_B.stdout
+        var: gpg_key_armor.stdout
 
 
 - name: "GPG key distribution"
@@ -225,7 +212,7 @@
 
     - name: "Set value of gpg_key_armor based on which variable was set"
       set_fact:
-        gpg_key_armor: "{{ gpg_key_armor_B if gpg_key_exists else gpg_key_armor_A }}"
+        gpg_key_armor: "{{ gpg_key_armor }}"
 
     - name: "Add GPG key to Github via API call"
       uri:
