@@ -48,7 +48,7 @@ If you get an error along the lines of `error: externally-managed-environment` w
 then install the package `pipx` and use that instead:
 ```
 sudo apt install pipx
-pipx install ansible jmespath
+pipx install --include-deps ansible jmespath
 ```
 
 **pipx** will probably recommend running `pipx ensurepath` so that any packages installed through `pipx` will be available in the terminal,
