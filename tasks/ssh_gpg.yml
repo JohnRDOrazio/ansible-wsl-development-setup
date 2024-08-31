@@ -145,11 +145,6 @@
       debug:
         var: gpg_key_generation
 
-    - name: "List the newly created GPG key"
-      shell: gpg --list-secret-keys --keyid-format=long
-      args:
-        executable: /bin/bash
-
 - name: "Get reference to existing GPG key"
   when: generate_gpg_key
   block:
