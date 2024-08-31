@@ -23,6 +23,8 @@
     executable: /bin/bash
   register: imagemagick_install_check
   changed_when: false
+  failed_when: imagemagick_install_check.rc != 0
+  ignore_errors: true
 
 - name: "Get ImageMagick version if installed"
   when: imagemagick_install_check.rc == 0 and imagemagick_install_check.stdout | length > 0
@@ -38,12 +40,18 @@
   when: imagemagick_install_check.rc != 0 or imagemagick_install_check.stdout == ""
   block:
 
+    - name: "Create directory for ImageMagick source code"
+      file:
+        path: "./ImageMagick"
+        state: directory
+
     - name: "Download latest ImageMagick tarball"
       unarchive:
         src: https://imagemagick.org/archive/ImageMagick.tar.gz
         dest: ./ImageMagick
         remote_src: true
-        creates: ./ImageMagick
+        extra_opts: ['--strip-components=1', '--show-stored-names']
+        creates: "./ImageMagick/MakeFile"
 
     - name: "Configure"
       command: "./configure"
@@ -77,6 +85,16 @@
       debug:
         var: imagemagick_make_check
 
+    - name: "Cleanup ImageMagick install"
+      file:
+        path: "./ImageMagick"
+        state: absent
+
 - name: "Test ImageMagick"
   command: "convert logo: logo.gif"
   creates: "logo.gif"
+
+- name: "Cleanup ImageMagick Test"
+  file:
+    path: "logo.gif"
+    state: absent
