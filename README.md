@@ -51,6 +51,18 @@ sudo apt install pipx
 pipx install ansible jmespath
 ```
 
+**pipx** will probably recommend running `pipx ensurepath` so that any packages installed through `pipx` will be available in the terminal,
+however running `pipx ensurepath` will add `export PATH="$PATH:/home/johnrdorazio/.local/bin"` to both `.bashrc` and to `.profile`.
+Seeing that `.profile` already includes `.bashrc`, it's probably better to do this manually rather than run `pipx ensurepath`.
+Edit `~/.bashrc` and add this at the end:
+
+```
+export PATH="$PATH:/home/johnrdorazio/.local/bin"
+eval "$(register-python-argcomplete pipx)"
+```
+
+The last line will add autocomplete for pipx to the terminal.
+
 You should probably close your WSL instance and open again in order to refresh paths,
 so that `ansible` commands can work correctly.
 
