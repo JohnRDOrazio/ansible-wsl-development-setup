@@ -1,3 +1,6 @@
 vars.yml
 roles/*/
 .vscode/
+.venv
+ImageMagick
+logo.gif
