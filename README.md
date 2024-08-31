@@ -27,44 +27,21 @@ git clone https://github.com/JohnRDOrazio/ansible-wsl-development-setup
 ```
 
 ### Install Ansible
-Firstly we will need to have Ansible installed, and Ansible requires python:
+Firstly we will need to have Ansible installed, and Ansible requires python.
+So we will create a python virtual environment in which to run ansible.
 ```shell
 sudo apt update
 sudo apt upgrade
-sudo apt install python3 python3-pip python-is-python3
+sudo apt install python3-pip python-is-python3
+cd ~/ansible-wsl-development-setup
+python -m venv .venv
+source .venv/bin/activate
 pip install ansible jmespath 
 ```
 
 I'm taking for granted that any python development will be done using Python 3,
 so installing the `python-is-python3` package will allow you to use `python` and `pip`
 rather than specifying `python3` or `pip3` every time.
-
-The `python3` package probably isn't necessary to specify,
-it should in fact already be installed on a fresh instance of WSL Ubuntu 22.04.
-
-The pip package `jmespath` is needed in order to use `json_query` within Ansible, which this playbook does.
-
-If you get an error along the lines of `error: externally-managed-environment` when issuing the `pip install`,
-then install the package `pipx` and use that instead:
-```
-sudo apt install pipx
-pipx install --include-deps ansible jmespath
-```
-
-**pipx** will probably recommend running `pipx ensurepath` so that any packages installed through `pipx` will be available in the terminal,
-however running `pipx ensurepath` will add `export PATH="$PATH:/home/johnrdorazio/.local/bin"` to both `.bashrc` and to `.profile`.
-Seeing that `.profile` already includes `.bashrc`, it's probably better to do this manually rather than run `pipx ensurepath`.
-Edit `~/.bashrc` and add this at the end:
-
-```
-export PATH="$PATH:/home/johnrdorazio/.local/bin"
-eval "$(register-python-argcomplete pipx)"
-```
-
-The last line will add autocomplete for pipx to the terminal.
-
-You should probably close your WSL instance and open again in order to refresh paths,
-so that `ansible` commands can work correctly.
 
 ### Install ansible roles
 In Ansible, **roles** are like precooked or reusable playbooks that take care of a number of tasks
