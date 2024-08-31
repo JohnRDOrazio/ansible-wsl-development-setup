@@ -355,7 +355,7 @@
           git_config:
             scope: global
             name: commit.gpgsign
-            value: "{{ git_commit_gpgsign }}"
+            value: "{{ git_commit_gpgsign | string | lower }}"
         - name: Configure Git init defaultbranch
           git_config:
             scope: global

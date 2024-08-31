@@ -45,7 +45,7 @@ gpg_max_cache_ttl_ssh: 14400
 git_user_name: "{{ gpg_realname }}"
 git_user_email: "{{ github_email }}"
 git_default_init_branch: "main"
-git_commit_gpgsign: "true"
+git_commit_gpgsign: true
 
 # setting this to true and defining ip and user will
 # copy the newly generated ssh key to a remote server
