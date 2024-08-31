@@ -44,6 +44,13 @@ it should in fact already be installed on a fresh instance of WSL Ubuntu 22.04.
 
 The pip package `jmespath` is needed in order to use `json_query` within Ansible, which this playbook does.
 
+If you get an error along the lines of `error: externally-managed-environment` when issuing the `pip install`,
+then install the package `pipx` and use that instead:
+```
+sudo apt install pipx
+pipx install ansible jmespath
+```
+
 You should probably close your WSL instance and open again in order to refresh paths,
 so that `ansible` commands can work correctly.
 
