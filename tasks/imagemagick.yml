@@ -90,9 +90,18 @@
         path: "./ImageMagick"
         state: absent
 
-- name: "Test ImageMagick"
+- name: "Run ImageMagick command"
   command: "convert logo: logo.gif"
-  creates: "logo.gif"
+
+- name: "Verify that logo.gif was created"
+  stat:
+    path: "logo.gif"
+  register: logo_file
+
+- name: "Fail if ImageMagick did not create logo.gif"
+  fail:
+    msg: "ImageMagick convert command failed to create logo.gif"
+  when: not logo_file.stat.exists
 
 - name: "Cleanup ImageMagick Test"
   file:
