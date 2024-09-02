@@ -1,0 +1,65 @@
+---
+- name: Check existence of Ondrej PHP PPA
+  stat:
+    path: "/etc/apt/sources.list.d/ondrej-ubuntu-php-{{ansible_distribution_release}}.sources"
+  register: sury_php_ppa_present
+
+- name: Report whether Ondrej Sury's PPA is already added
+  debug:
+    msg: "Ondrej Sury's PPA {{ 'IS' if sury_php_ppa_present.stat.exists else 'IS NOT' }} already added"
+
+# Not using Ansible's apt_repository here because it doesn't install
+# the key to /etc/apt/trusted.gpg.d/, instead it uses the deprecated /etc/apt/trusted.gpg
+- name: Add Ondrej Sury's PHP PPA if not present
+  when: not sury_php_ppa_present.stat.exists
+  become: true
+  shell: |
+    add-apt-repository --yes ppa:ondrej/php
+    apt update
+  register: add_apt_repo_sury_php
+  args:
+    executable: /bin/bash
+  changed_when: add_apt_repo_sury_php.rc == 0
+
+- name: Define list of PHP versions to install
+  set_fact:
+    php_versions_to_install: "{{ php_versions | map('regex_replace', '^(.*)$', 'php\\1') | list }}"
+
+- name: Define list of PHP modules to install for each version
+  set_fact:
+    php_modules_to_install: "{{ php_modules_to_install|default([]) + (php_modules | map('regex_replace', '^(.*)$', item ~ '-\\1') | list) }}"
+  with_items: "{{ php_versions_to_install }}"
+
+- name: Report php_versions_to_install
+  debug:
+    msg:
+      php_versions_to_install: "{{ php_versions_to_install }}"
+      php_modules_to_install: "{{ php_modules_to_install }}"
+
+- name: Install PHP
+  apt:
+    name: "{{ php_versions_to_install }}"
+    state: present
+  become: true
+
+- name: Install PHP modules
+  apt:
+    name: "{{ php_modules_to_install }}"
+    state: present
+  become: true
+  diff: true
+
+- name: Check if PHP is installed correctly
+  shell: php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'
+  args:
+    executable: /bin/bash
+  register: php_installation_check
+  changed_when: false
+
+- name: Verify expected default PHP
+  when: php_installation_check.rc == 0
+  assert:
+    that:
+      - "php_installation_check.stdout == ( php_versions | max )"
+    fail_msg: "We expected the default version of PHP to be {{ php_versions | max }} but instead it was {{ php_installation_check.stdout }}"
+    success_msg: "Default version of PHP is in fact the expected version: {{ php_installation_check.stdout }}"

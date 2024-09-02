@@ -26,9 +26,13 @@
       include_tasks: tasks/imagemagick.yml
       when: make_install_imagemagick
 
-    - name: Enable PHP PPA and install PHP
-      include_tasks: tasks/php.yml
-      when: install_php
+    - name: Enable PHP PPA and install PHP on Ubuntu 20 or 22
+      include_tasks: tasks/php_ubuntu20.yml
+      when: install_php and ansible_distribution_major_version|int < 24
+
+    - name: Enable PHP PPA and install PHP on Ubuntu 24
+      include_tasks: tasks/php_ubuntu24.yml
+      when: install_php and ansible_distribution_major_version|int > 22
 
     - name: Download and install Composer
       include_tasks: tasks/composer.yml
@@ -39,5 +43,9 @@
       when: install_rbenv_ruby
 
     - name: Enable Python PPA and install desired versions of Python
-      include_tasks: tasks/python.yml
-      when: install_python
+      include_tasks: tasks/python_ubuntu20.yml
+      when: install_python and ansible_distribution_major_version|int < 24
+
+    - name: Enable Python PPA and install desired versions of Python
+      include_tasks: tasks/python_ubuntu24.yml
+      when: install_python and ansible_distribution_major_version|int > 22

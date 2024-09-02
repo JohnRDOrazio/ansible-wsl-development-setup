@@ -66,10 +66,10 @@
   register: python_installation_check
   changed_when: false
 
-- name: Verify expected default PHP
+- name: Report whether Python is installed correctly
   when: python_installation_check.rc == 0
   assert:
     that:
       - "python_installation_check.stdout == ( python_versions | max )"
-    fail_msg: "We expected the default version of PHP to be {{ php_versions | max }} but instead it was {{ php_installation_check.stdout }}"
-    success_msg: "Default version of PHP is in fact the expected version: {{ php_installation_check.stdout }}"
+    fail_msg: "We expected the max version of Python to be {{ python_versions | max }} but instead it was {{ python_installation_check.stdout }}"
+    success_msg: "Max version of Python is in fact the expected version: {{ python_installation_check.stdout }}"
