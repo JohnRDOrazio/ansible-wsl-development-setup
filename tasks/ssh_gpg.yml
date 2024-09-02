@@ -288,6 +288,13 @@
         line: "max-cache-ttl-ssh {{ gpg_max_cache_ttl_ssh }}"
         state: present
 
+    - name: "Set pinentry program"
+      lineinfile:
+        path: "~/.gnupg/gpg-agent.conf"
+        search_string: 'pinentry-program '
+        line: pinentry-program "/mnt/d/Program Files (x86)/Gpg4win/bin/pinentry-w32.exe"
+        state: present
+
 - name: Set Git global config
   when: set_git_global_config
   block:
