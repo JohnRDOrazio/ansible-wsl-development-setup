@@ -292,7 +292,7 @@
       lineinfile:
         path: "~/.gnupg/gpg-agent.conf"
         search_string: 'pinentry-program '
-        line: pinentry-program "/mnt/d/Program Files (x86)/Gpg4win/bin/pinentry-w32.exe"
+        line: pinentry-program "/mnt/d/Program Files (x86)/Gpg4win/bin/pinentry.exe"
         state: present
 
 - name: Set Git global config
