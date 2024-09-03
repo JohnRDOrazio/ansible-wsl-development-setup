@@ -36,12 +36,17 @@ sudo apt install python3-pip python-is-python3
 cd ~/ansible-wsl-development-setup
 python -m venv .venv
 source .venv/bin/activate
-pip install ansible jmespath 
+pip install ansible jmespath python-debian
 ```
 
 I'm taking for granted that any python development will be done using Python 3,
 so installing the `python-is-python3` package will allow you to use `python` and `pip`
 rather than specifying `python3` or `pip3` every time.
+
+The `jmespath` package is required for parsing JSON (which this playbook does).
+
+The `python-debian` package is required by the new `ansible.builtin.deb822_repository` module.
+This module requires Ansible 2.15 or later.
 
 ### Install ansible roles
 In Ansible, **roles** are like precooked or reusable playbooks that take care of a number of tasks
@@ -78,11 +83,11 @@ This will take care of the following tasks:
 - set global git configuration with user, email, signing keys, commit sign turned on by default, and default branch name for new repos set to `main`
 - make sure that `NVM` (node version manager) is installed
 - make sure that the current latest stable version of `NodeJS` is installed
-- make sure that `AVN` (Automatic Version Switching for Node.js) is installed  
+- make sure that `AVN` (Automatic Version Switching for Node.js) is installed
    *(I fixed `AVN` trying to write to `.bash_profile` rather than `.bashrc` which is the default profile file on Ubuntu)*
 - make sure that `RBENV` (Ruby version manager) is installed
 - make sure that the current latest stable version of `Ruby` is installed
-- 
+-
 
 # TODO
 This playbook could easily be made to work for other environments other than Ubuntu.
