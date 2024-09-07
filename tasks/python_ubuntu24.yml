@@ -1,5 +1,4 @@
 ---
----
 - name: Download page content for ppa:deadsnakes/ppa from launchpad.net
   ansible.builtin.set_fact:
     deadsnakes_ppa_page_content: "{{ lookup('ansible.builtin.url', 'https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa/') }}"
