@@ -1,16 +1,17 @@
 ---
-- name: Download page content for ppa:ondrej/php from launchpad.net
-  ansible.builtin.set_fact:
-    ondrej_ppa_page_content: "{{ lookup('ansible.builtin.url', 'https://launchpad.net/~ondrej/+archive/ubuntu/php/') }}"
-  
-- name: Extract JSON from the ondrej/php PPA page content using regex
-  ansible.builtin.set_fact:
-    ondrej_ppa_json_cache: "{{ ondrej_ppa_page_content | regex_search('LP\\.cache = (\\{.*\\});</script>', '\\1') }}"
+- name: Make API request to Launchpad
+  uri:
+    url: "https://api.launchpad.net/devel/~ondrej/+archive/ubuntu/php"
+    return_content: yes
+    method: GET
+    headers:
+      Accept: "application/json"
+  register: launchpad_ondrej_response
 
 - name: Parse JSON to extract signing key fingerprint
   ansible.builtin.set_fact:
-    ondrej_signing_key_fingerprint: "{{ ppa_json_cache | from_json | json_query('context.signing_key_fingerprint') }}"
-  
+    ondrej_signing_key_fingerprint: "{{ launchpad_ondrej_response.json.signing_key_fingerprint }}"
+
 - name: Display the signing key fingerprint
   ansible.builtin.debug:
     msg: "The signing key fingerprint is: {{ ondrej_signing_key_fingerprint }}"

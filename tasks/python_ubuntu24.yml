@@ -1,15 +1,16 @@
 ---
-- name: Download page content for ppa:deadsnakes/ppa from launchpad.net
-  ansible.builtin.set_fact:
-    deadsnakes_ppa_page_content: "{{ lookup('ansible.builtin.url', 'https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa/') }}"
-  
-- name: Extract JSON from the deadsnakes/ppa PPA page content using regex
-  ansible.builtin.set_fact:
-    deadsnakes_ppa_json_cache: "{{ deadsnakes_ppa_page_content | regex_search('LP\\.cache = (\\{.*\\});</script>', '\\1') }}"
+- name: Make API request to Launchpad
+  uri:
+    url: "https://api.launchpad.net/devel/~deadsnakes/+archive/ubuntu/php"
+    return_content: yes
+    method: GET
+    headers:
+      Accept: "application/json"
+  register: launchpad_deadsnakes_response
 
 - name: Parse JSON to extract signing key fingerprint
   ansible.builtin.set_fact:
-    deadsnakes_signing_key_fingerprint: "{{ ppa_json_cache | from_json | json_query('context.signing_key_fingerprint') }}"
+    deadsnakes_signing_key_fingerprint: "{{ launchpad_deadsnakes_response.json.signing_key_fingerprint }}"
   
 - name: Display the signing key fingerprint
   ansible.builtin.debug:
