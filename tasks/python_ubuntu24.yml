@@ -1,7 +1,7 @@
 ---
 - name: Make API request to Launchpad
   uri:
-    url: "https://api.launchpad.net/devel/~deadsnakes/+archive/ubuntu/php"
+    url: "https://api.launchpad.net/devel/~deadsnakes/+archive/ubuntu/ppa"
     return_content: yes
     method: GET
     headers:
