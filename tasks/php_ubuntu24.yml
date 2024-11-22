@@ -17,8 +17,14 @@
     msg: "The signing key fingerprint is: {{ ondrej_signing_key_fingerprint }}"
 
 - name: Retrieve ASCII representation of the key using the signing key fingerprint
+  ansible.builtin.uri:
+    url: "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x{{ ondrej_signing_key_fingerprint }}"
+    return_content: true
+  register: ondrej_signing_key_response
+
+- name: Set fact with the response content
   ansible.builtin.set_fact:
-    ondrej_signing_key_ascii: "{{ lookup('ansible.builtin.url', 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x{{ ondrej_signing_key_fingerprint }}') }}"
+    ondrej_signing_key_ascii: "{{ ondrej_signing_key_response.content }}"
 
 - name: Install the PPA repository in deb822 format
   become: true
