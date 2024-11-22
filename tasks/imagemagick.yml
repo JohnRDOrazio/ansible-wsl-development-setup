@@ -65,7 +65,7 @@
         chdir: "./ImageMagick"
         creates: "./ImageMagick/utilites/.libs"
 
-    - name: "Install"
+    - name: "Install (be patient, can take a while)"
       become: true
       command: "make install"
       args:
@@ -75,7 +75,7 @@
       become: true
       command: "ldconfig /usr/local/lib"
 
-    - name: "Check installation"
+    - name: "Check installation (be patient, can take a long time)"
       command: "make check"
       args:
         chdir: "./ImageMagick"

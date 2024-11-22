@@ -94,7 +94,7 @@
       debug:
         var: ruby_build_packages_install
 
-    - name: Install latest version of Ruby
+    - name: Install latest version of Ruby (be patient, can take a while)
       shell: |
         eval "$($HOME/.rbenv/bin/rbenv init - bash)"
         rbenv install $(rbenv install -l | grep -v - | tail -1)

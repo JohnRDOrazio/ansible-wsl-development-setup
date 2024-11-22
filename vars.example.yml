@@ -90,7 +90,7 @@ php_modules:
 #  - http
 #  - igbinary
 #  - imagick    #* useful for image manipulation, for example in wordpress sites... requires imagemagick to be installed
-#  - imap
+#  - imap       # not available for PHP 8.4, moved to PECL
 #  - inotify
 #  - interbase
 #  - intl
@@ -111,7 +111,7 @@ php_modules:
 #  - phpdbg
 #  - protobuf
 #  - ps
-#  - pspell
+#  - pspell     # not available for PHP 8.4, moved to PECL
 #  - psr
 #  - raphf
 #  - rdkafka
@@ -121,7 +121,7 @@ php_modules:
 #  - smbclient
 #  - snmp
 #  - soap
-#  - solr
+#  - solr       # not available (yet?) for PHP 8.4
 #  - sqlite3
 #  - ssh2
 #  - stomp
