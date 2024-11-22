@@ -18,7 +18,7 @@
 
 - name: Retrieve ASCII representation of the key using the signing key fingerprint
   ansible.builtin.set_fact:
-    deadsnakes_signing_key_ascii: "{{ lookup('ansible.builtin.url', 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x{{ signing_key_fingerprint }}') }}"
+    deadsnakes_signing_key_ascii: "{{ lookup('ansible.builtin.url', 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x{{ deadsnakes_signing_key_fingerprint }}') }}"
 
 - name: Install the PPA repository in deb822 format
   become: true
