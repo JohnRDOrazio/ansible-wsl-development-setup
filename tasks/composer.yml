@@ -5,6 +5,8 @@
     executable: /bin/bash
   register: composer_present_check
   changed_when: false
+  failed_when: composer_present_check != 0
+  ignore_errors: true
 
 - name: Register Composer installation state
   debug:
