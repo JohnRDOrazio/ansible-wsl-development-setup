@@ -32,7 +32,7 @@ So we will create a python virtual environment in which to run ansible.
 ```shell
 sudo apt update
 sudo apt upgrade
-sudo apt install python3-pip python-is-python3
+sudo apt install python3-pip python3-venv python-is-python3
 cd ~/ansible-wsl-development-setup
 python -m venv .venv
 source .venv/bin/activate
