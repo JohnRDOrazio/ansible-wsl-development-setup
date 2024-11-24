@@ -73,7 +73,7 @@ We are now finally ready for Ansible to run the tasks in this playbook!
 ansible-playbook main.yml
 ```
 
-This will take care of the following tasks:
+This will take care of the following tasks (according to whether you have enabled them in `vars.yml`):
 - check if an SSH key exists for the current user, and if not, generate a new one
 - check if the SSH key is present on your Github profile, and if not, add it
 - optionally add the public SSH key to a remote server, for easier SSH management of the remote server
@@ -87,7 +87,17 @@ This will take care of the following tasks:
    *(I fixed `AVN` trying to write to `.bash_profile` rather than `.bashrc` which is the default profile file on Ubuntu)*
 - make sure that `RBENV` (Ruby version manager) is installed
 - make sure that the current latest stable version of `Ruby` is installed
--
+
+> [!NOTE]
+> When using vscode to "remote ssh" to wsl, often the ssh private key credentials are not cached and every time we try to git push we are prompted for our credentials (and twice at that!).
+>
+> This usually happens when wsl isn't actually open, I believe.
+>
+> A workaround to make sure that git will use an actual running ssh agent is to make it use the windows ssh agent:
+>
+> `git config --global core.sshCommand "/mnt/c/Windows/System32/OpenSSH/ssh.exe"`
+> 
+> This requires having the windows OpenSSH agent run automatically at startup, see [here](https://github.com/Microsoft/vscode/issues/13680#issuecomment-414841885).
 
 # TODO
 This playbook could easily be made to work for other environments other than Ubuntu.
