@@ -98,6 +98,9 @@ This will take care of the following tasks (according to whether you have enable
 > `git config --global core.sshCommand "/mnt/c/Windows/System32/OpenSSH/ssh.exe"`
 > 
 > This requires having the windows OpenSSH agent run automatically at startup, see [here](https://github.com/Microsoft/vscode/issues/13680#issuecomment-414841885).
+>
+> Also, in order to set the pinentry program to the Windows version of pinentry-qt, it is recommended to install [GPG4Win](https://www.gpg4win.org/download.html) before running the playbook.
+> Adjust the path to the pinentry executable accordingly.
 
 # TODO
 This playbook could easily be made to work for other environments other than Ubuntu.
