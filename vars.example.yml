@@ -34,12 +34,14 @@ github_api_token: my_api_token      #*
 # if GPG is used to sign commits, it makes sense for the key to be associated with the Github email address
 # however you might have reason to want to set it specifically...
 # Here you can also set the TTL for the GPG agent cache, seeing the default is 600 seconds = 10 minutes which can get frustrating
+# In order for pinentry to work across Windows and WSL, it is recommended to set a Windows pinentry such as provided by Gpg4win.
 gpg_realname: "your name here"      #*
 gpg_useremail: "{{ github_email }}"
 gpg_default_cache_ttl: 14400
 gpg_max_cache_ttl: 14400
 gpg_default_cache_ttl_ssh: 14400
 gpg_max_cache_ttl_ssh: 14400
+gpg_pinentry_path: "/mnt/c/Program Files (x86)/Gpg4win/bin/pinentry.exe"
 
 # git global configuration
 git_user_name: "{{ gpg_realname }}"
