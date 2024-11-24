@@ -100,7 +100,8 @@ This will take care of the following tasks (according to whether you have enable
 > This requires having the windows OpenSSH agent run automatically at startup, see [here](https://github.com/Microsoft/vscode/issues/13680#issuecomment-414841885).
 >
 > Also, in order to set the pinentry program to the Windows version of pinentry-qt, it is recommended to install [GPG4Win](https://www.gpg4win.org/download.html) before running the playbook.
-> Adjust the path to the pinentry executable accordingly.
+> Adjust the path to the pinentry executable accordingly in the `gpg_pinentry_path` variable,
+> or comment it out / set it to None / set it to empty to avoid setting the `pinentry-program` in the `gpg-agent.conf`.
 
 # TODO
 This playbook could easily be made to work for other environments other than Ubuntu.
