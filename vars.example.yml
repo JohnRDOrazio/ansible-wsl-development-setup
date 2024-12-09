@@ -160,6 +160,19 @@ python_packages:
   - "venv"
   - "dev"
 
+# Packages to install for imagemagick delegates
+__imagemagick_deps
+  - ghostscript
+  - libjpeg-dev
+  - libpng-dev
+  - libwebp-dev
+  - libheif-dev
+  - librsvg2-dev
+  - libxml2-dev
+  - inkscape
+  - libfftw3-dev
+  - libfreetype-dev
+  - libperl-dev
 # might not want to touch this... is needed to correctly install and build ruby
 __ruby_build_packages:
   - build-essential
