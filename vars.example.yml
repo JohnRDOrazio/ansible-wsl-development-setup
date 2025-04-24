@@ -160,7 +160,7 @@ python_packages:
   - "dev"
 
 # Packages to install for imagemagick delegates
-__imagemagick_deps
+__imagemagick_deps:
   - ghostscript
   - libjpeg-dev
   - libpng-dev
