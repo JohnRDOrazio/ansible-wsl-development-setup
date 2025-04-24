@@ -1,24 +1,37 @@
 ---
-- name: "Install optional ImageMagick dependencies"
-  become: true
+- name: Define imagemagick_deps
+  set_fact:
+    imagemagick_deps: "{{ __imagemagick_deps }}"
+  when: imagemagick_deps is not defined
+
+- name: Install optional ImageMagick dependencies
   apt:
-    name: "ghostscript"
+    name: "{{ imagemagick_deps }}"
     state: present
     update_cache: true
     cache_valid_time: 86400
+  become: true
+  register: imagemagick_deps_install
+  retries: 3
+  until: imagemagick_deps_install is succeeded
+  diff: true
 
-- name: "Test ghostscript"
+- name: Report installation of optional imagemagick dependencies
+  debug:
+    var: imagemagick_deps_install
+
+- name: Test ghostscript
   command: gs -h
   register: ghostscript
   ignore_errors: true
 
-- name: "Report ghostscript installation"
+- name: Report ghostscript installation
   when: ghostscript.rc == 0
   debug:
     msg: "Ghostscript is correctly installed: {{ ghostscript.stdout }}"
 
-- name: "Check if ImageMagick is installed"
-  shell: convert --version
+- name: Check if ImageMagick is installed
+  shell: magick --version
   args:
     executable: /bin/bash
   register: imagemagick_install_check
@@ -26,17 +39,17 @@
   failed_when: imagemagick_install_check.rc != 0
   ignore_errors: true
 
-- name: "Get ImageMagick version if installed"
+- name: Get ImageMagick version if installed
   when: imagemagick_install_check.rc == 0 and imagemagick_install_check.stdout | length > 0
   set_fact:
     imagemagick_version_detect: "{{ imagemagick_install_check.stdout_lines[0] | regex_replace('^Version: ImageMagick (.*?) ', '\\1') }}"
 
-- name: "Report ImageMagick version if installed"
+- name: Report ImageMagick version if installed
   when: imagemagick_install_check.rc == 0 and imagemagick_install_check.stdout | length > 0
   debug:
     msg: "ImageMagick version {{ imagemagick_version_detect }} is currently installed"
 
-- name: "Download and extract latest ImageMagick tarball when not installed"
+- name: Download and extract latest ImageMagick tarball when not installed
   when: imagemagick_install_check.rc != 0 or imagemagick_install_check.stdout == ""
   block:
 
@@ -91,7 +104,7 @@
         state: absent
 
 - name: "Run ImageMagick command"
-  command: "convert logo: logo.gif"
+  command: "magick logo: logo.gif"
 
 - name: "Verify that logo.gif was created"
   stat:
