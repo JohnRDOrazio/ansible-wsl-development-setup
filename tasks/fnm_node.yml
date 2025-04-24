@@ -1,0 +1,48 @@
+---
+- name: Install FNM Node Manager
+  when: install_fnm_node
+  block:
+
+    - name: "Check if FNM is installed"
+      ansible.builtin.command: which fnm
+      register: fnm_check
+      ignore_errors: true
+
+    - name: "Report whether FNM is installed"
+      debug:
+        msg: "FNM apparently {{ 'IS' if fnm_check.rc == 0 else 'IS NOT' }} installed"
+
+    - name: Install fnm if not already installed
+      ansible.builtin.shell: |
+        curl -fsSL https://fnm.vercel.app/install | bash
+      when: fnm_check.rc != 0
+
+    - name: Ensure fnm init is in .bashrc
+      ansible.builtin.blockinfile:
+        path: ~/.bashrc
+        marker: "# {mark} ANSIBLE MANAGED FNM INIT BLOCK"
+        block: |
+          # fnm
+          FNM_PATH="~/.local/share/fnm"
+          if [ -d "$FNM_PATH" ]; then
+            export PATH="$FNM_PATH:$PATH"
+            eval "`fnm env`"
+          fi
+      become: false
+
+    - name: "Check whether FNM seems to be working"
+      ansible.builtin.shell: |
+        source ~/.bashrc && command -v fnm
+      args:
+        executable: /bin/bash
+      register: fnm_working
+      ignore_errors: true
+      changed_when: false
+      failed_when: fnm_check.rc != 0
+
+    - name: Report whether FNM seems to be working
+      ansible.builtin.assert:
+        that:
+          - fnm_working.stdout is match(".*\\.local/share/fnm/fnm$")
+        fail_msg: "fnm is not installed in the expected ~/.local/share/fnm location."
+        success_msg: "fnm is correctly installed in ~/.local/share/fnm."

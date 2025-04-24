@@ -2,6 +2,3 @@ skip_list:
   - 'risky-shell-pipe'
   - 'fqcn[action-core]'
   - 'fqcn[action]'
-
-exclude_paths:
-  - ansible-wsl-development-setup/roles/ansible-role-nvm/

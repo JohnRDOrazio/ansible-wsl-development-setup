@@ -12,9 +12,9 @@
       include_tasks: tasks/ssh_gpg.yml
       when: generate_ssh_key or generate_gpg_key
 
-    - name: Install NVM / Node / AVN
-      include_tasks: tasks/nvm_node.yml
-      when: install_nvm_node or install_avn
+    - name: Install FNM node manager
+      include_tasks: tasks/fnm_node.yml
+      when: install_fnm_node
 
     # Let's not worry about Yarn for now, seeing it has moved to versions 2, 3 and even 4
     # - name: "Ensure yarn is installed"

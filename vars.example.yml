@@ -9,8 +9,7 @@ add_gpg_key_to_github: true
 install_keychain: true
 set_gpg_agent_config: true
 set_git_global_config: true
-install_nvm_node: true
-install_avn: true
+install_fnm_node: true
 install_rbenv_ruby: true
 install_php: true               #make sure to set the desired version(s) of PHP to install below
 install_composer: true

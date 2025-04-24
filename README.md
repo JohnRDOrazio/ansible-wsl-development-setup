@@ -53,10 +53,12 @@ In Ansible, **roles** are like precooked or reusable playbooks that take care of
 that would otherwise require quite a bit of effort to write from scratch. Using **roles** can help
 keep your playbooks as clean and simple as possible.
 
-Currently, we are using a single **role** in this playbook, `ansible-role-nvm` by @morgangraphics,
-defined in `requirements.yml`. We're using our own forked version to fix a glitch in newer versions of Ansible.
+Originally we used a single **role** in this playbook, `ansible-role-nvm` by @morgangraphics,
+defined in `requirements.yml`, but we have now switched to preferring `fnm` over `nvm` as the Node Version Manager,
+so the `ansible-role-nvm` is no longer required.
 
-We must install our roles before running our playbook. From within our project folder (`~/ansible-wsl-development-setup/`) run:
+If we do require any roles, then we must install then before running our playbook.
+From within our project folder (`~/ansible-wsl-development-setup/`) run:
 ```shell
 ansible-galaxy install -r requirements.yml
 ```
@@ -81,10 +83,7 @@ This will take care of the following tasks (according to whether you have enable
 - check if the GPG key is present on your Github profile, and if not, add it
 - make sure that `keychain` is installed and added to user profile (`~/.bashrc`)
 - set global git configuration with user, email, signing keys, commit sign turned on by default, and default branch name for new repos set to `main`
-- make sure that `NVM` (node version manager) is installed
-- make sure that the current latest stable version of `NodeJS` is installed
-- make sure that `AVN` (Automatic Version Switching for Node.js) is installed
-   *(I fixed `AVN` trying to write to `.bash_profile` rather than `.bashrc` which is the default profile file on Ubuntu)*
+- make sure that `FNM` (node version manager) is installed
 - make sure that `RBENV` (Ruby version manager) is installed
 - make sure that the current latest stable version of `Ruby` is installed
 
@@ -96,7 +95,7 @@ This will take care of the following tasks (according to whether you have enable
 > A workaround to make sure that git will use an actual running ssh agent is to make it use the windows ssh agent:
 >
 > `git config --global core.sshCommand "/mnt/c/Windows/System32/OpenSSH/ssh.exe"`
-> 
+>
 > This requires having the windows OpenSSH agent run automatically at startup, see [here](https://github.com/Microsoft/vscode/issues/13680#issuecomment-414841885).
 >
 > Also, in order to set the pinentry program to the Windows version of pinentry-qt, it is recommended to install [GPG4Win](https://www.gpg4win.org/download.html) before running the playbook.
