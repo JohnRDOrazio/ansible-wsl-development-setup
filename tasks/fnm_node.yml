@@ -26,9 +26,10 @@
           FNM_PATH="~/.local/share/fnm"
           if [ -d "$FNM_PATH" ]; then
             export PATH="$FNM_PATH:$PATH"
-            eval "`fnm env`"
+            eval "`fnm env --use-on-cd`"
           fi
       become: false
+      validate: 'grep -q "fnm env" ~/.bashrc'
 
     - name: "Check whether FNM seems to be working"
       ansible.builtin.shell: |
