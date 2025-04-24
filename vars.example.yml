@@ -61,6 +61,7 @@ remote_server_user: remoteserveruser #* when remote_server_authorize_key is true
 ansible_become_password: sudopasswordhere #*
 
 php_versions: # list here the versions of php you would like installed
+  - "8.4"
   - "8.3"
   - "8.2"
 
